@@ -8,6 +8,8 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Scale an entity](#scale-an-entity)
   - [Non-linear changes](#non-linear-changes)
   - [Stopping tweens and callbacks](#stopping-tweens-and-callbacks)
+- [Perpetual motions](#perpetual-motions)
+  - [Perpetual rotation](#perpetual-rotation)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)
@@ -67,13 +69,10 @@ To rotate an entity over a period of time, from one direction to another, use `u
 This example rotates an entity from one directions to another over 2 seconds:
 
 ```ts
-// Required to make scene work
 export * from '@dcl/sdk'
-// Import SDK functionality and utils library
 import { Quaternion } from '@dcl/sdk/math'
 import * as utils from '@dcl/sdk7-utils'
 
-// Create a box
 const box = utils.addTestCube()
 
 // Define start and end directions
@@ -91,13 +90,10 @@ To adjust the scale of an entity over a period of time, from one size to another
 This example scales an entity from one size to another over 2 seconds:
 
 ```ts
-// Required to make scene work
 export * from '@dcl/sdk'
-// Import SDK functionality and utils library
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl/sdk7-utils'
 
-// Create a box
 const box = utils.addTestCube()
 
 // Define start and end sizes
@@ -168,6 +164,31 @@ utils.tweens.startTranslation(
 )
 ```
 
+## Perpetual motions
+
+### Perpetual rotation
+
+To rotate an entity continuously, use `utils.perpetualMotions.startRotation`. The entity will keep rotating forever until it's explicitly stopped. This function has one required argument:
+
+- `rotationVelocity`: A quaternion describing the desired rotation to perform each second second. For example `Quaternion.fromEulerDegrees(0, 45, 0)` rotates the entity on the Y axis at a speed of 45 degrees per second, meaning that it makes a full turn every 8 seconds.
+
+Rotation can be stopped by calling `utils.perpetualMotions.stopRotation`.
+
+In the following example, a cube rotates continuously until clicked:
+
+```ts
+export * from '@dcl/sdk'
+import { Quaternion, Vector3 } from '@dcl/sdk/math'
+import * as utils from '@dcl/sdk7-utils'
+
+const box = utils.addTestCube(
+  {position: {x: 1, y: 1, z: 1}},
+  function() { utils.perpetualMotions.stopRotation(box) }
+)
+
+utils.perpetualMotions.startRotation(box, Quaternion.fromEulerDegrees(0, 45, 0))
+```
+
 ## Action sequence
 
 Use an action sequence to play a series of actions one after another.
@@ -211,9 +232,7 @@ The `actions.SequenceRunner` object takes care of running sequences created by `
 The following example creates a box that changes its scale until clicked. Then it resets its scale and moves.
 
 ```ts
-// Required to make scene work
 export * from '@dcl/sdk'
-// Import SDK functionality and utils library
 import { engine, Transform, Entity } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl/sdk7-utils'
@@ -269,7 +288,6 @@ class MoveAction implements utils.actions.IAction {
     this.position = position
   }
 
-  // Method when action starts
   onStart(): void {
     const transform = Transform.get(this.entity)
 
@@ -282,9 +300,9 @@ class MoveAction implements utils.actions.IAction {
       () => { this.hasFinished = true }
     )
   }
-  // Method to run on every frame
+
   update(dt: number): void {}
-  // Method to run at the end
+
   onFinish(): void {}
 }
 
