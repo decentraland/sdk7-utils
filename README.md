@@ -10,6 +10,10 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Stopping tweens and callbacks](#stopping-tweens-and-callbacks)
 - [Perpetual motions](#perpetual-motions)
   - [Perpetual rotation](#perpetual-rotation)
+- [Path following](#path-following)
+  - [Straight path][#straight-path]
+  - [Smooth path][#smooth-path]
+  - [Stopping paths and callbacks](#stopping-paths-and-callbacks)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)
@@ -168,9 +172,7 @@ utils.tweens.startTranslation(
 
 ### Perpetual rotation
 
-To rotate an entity continuously, use `utils.perpetualMotions.startRotation`. The entity will keep rotating forever until it's explicitly stopped. This function has one required argument:
-
-- `rotationVelocity`: A quaternion describing the desired rotation to perform each second second. For example `Quaternion.fromEulerDegrees(0, 45, 0)` rotates the entity on the Y axis at a speed of 45 degrees per second, meaning that it makes a full turn every 8 seconds.
+To rotate an entity continuously, use `utils.perpetualMotions.startRotation`. The entity will keep rotating forever until it's explicitly stopped. `rotationVelocity` argument is a quaternion describing the desired rotation to perform each second second. For example `Quaternion.fromEulerDegrees(0, 45, 0)` rotates the entity on the Y axis at a speed of 45 degrees per second, meaning that it makes a full turn every 8 seconds.
 
 Rotation can be stopped by calling `utils.perpetualMotions.stopRotation`.
 
@@ -178,7 +180,7 @@ In the following example, a cube rotates continuously until clicked:
 
 ```ts
 export * from '@dcl/sdk'
-import { Quaternion, Vector3 } from '@dcl/sdk/math'
+import { Quaternion } from '@dcl/sdk/math'
 import * as utils from '@dcl/sdk7-utils'
 
 const box = utils.addTestCube(
@@ -187,6 +189,99 @@ const box = utils.addTestCube(
 )
 
 utils.perpetualMotions.startRotation(box, Quaternion.fromEulerDegrees(0, 45, 0))
+```
+
+## Path following
+
+### Straight path
+
+To move an entity over several points of a path over a period of time, use `utils.paths.startStraightPath`. Along with an entity which will follow a path you must specify two arguments:
+
+- `points`: An array of `Vector3` positions that form the path.
+- `duration`: The duration (in seconds) of the whole path.
+
+There are two optional arguments:
+
+- `loop`: When set to true, path becomes closed, after reaching a final point, an entity will proceed to the first one.
+- `faceDirection`: When set to true, an entity will be rotated to face the direction of its movement.
+
+This example moves an entity through four points over 10 seconds:
+
+```ts
+export * from '@dcl/sdk'
+import { Vector3 } from '@dcl/sdk/math'
+import * as utils from '@dcl/sdk7-utils'
+
+const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+
+let path = [
+  Vector3.create(1, 1, 1),
+  Vector3.create(1, 1, 15),
+  Vector3.create(15, 1, 15),
+  Vector3.create(15, 1, 1)
+]
+
+utils.paths.startStraightPath(box, path, 10)
+```
+
+### Smooth path
+
+To make an entity follow a smooth path over a period of time, use `utils.paths.startSmoothPath`. The smooth path is composed of multiple straight line segments put together. You only need to supply a series of fixed path points and a smooth curve is drawn to pass through all of these. You must specify an amount of segments via `segmentCount` argument.
+
+> Tip: Each segment takes at least one frame to complete. Avoid using more than 30 segments per second in the duration of the path, or the entity will move significantly slower while it stops for each segment.
+
+This example makes entity follow a smooth path that's subdivided into 20 segments, over a period of 10 seconds. The curve passes through four key points.
+
+```ts
+export * from '@dcl/sdk'
+import { Vector3 } from '@dcl/sdk/math'
+import * as utils from '@dcl/sdk7-utils'
+
+const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+
+let path = [
+  Vector3.create(5, 1, 5),
+  Vector3.create(5, 1, 11),
+  Vector3.create(11, 1, 11),
+  Vector3.create(11, 1, 5)
+]
+
+utils.paths.startSmoothPath(box, path, 10, 20)
+```
+
+`loop` and `faceDirection` arguments work for smooth paths too.
+
+### Stopping paths and callbacks
+
+Just like tweens, paths can be stopped: use `utils.paths.stopPath` for that purpose. Again, like tweens, path starting functions accept optional `onFinishCallback` argument which is executed after a path finishes or is explicitly stopped.
+
+Straight paths also accept optional `onPointReachedCallback` argument which is executed when a path reaches one of its milestones (`points`).
+
+The following example logs a messages when the box finishes each segment of the path, and another when the entire path is done.
+
+```ts
+export * from '@dcl/sdk'
+import { Vector3 } from '@dcl/sdk/math'
+import * as utils from '@dcl/sdk7-utils'
+
+const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+
+let path = [
+  Vector3.create(5, 1, 5),
+  Vector3.create(5, 1, 11),
+  Vector3.create(11, 1, 11),
+  Vector3.create(11, 1, 5)
+]
+
+utils.paths.startStraightPath(
+  box, path, 10, false, false,
+  function() {
+    console.log('Path is complete')
+  },
+  function(pointIndex, pointCoords, nextPointCoords) {
+    console.log(`Reached point ${pointIndex}`)
+  }
+)
 ```
 
 ## Action sequence

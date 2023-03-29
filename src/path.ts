@@ -144,16 +144,16 @@ function createPaths(targetEngine: IEngine) {
     ) {
       return startPath(entity, points, duration, faceDirection, 0, loop, onFinishCallback, onPointReachedCallback)
     },
-    startCurvedPath(
+    startSmoothPath(
       entity: Entity,
       points: Vector3[],
       duration: number,
-      curveSegmentNumber: number,
+      segmentCount: number,
       loop?: boolean,
       faceDirection?: boolean,
       onFinishCallback?: OnFinishCallback
     ) {
-      return startPath(entity, points, duration, faceDirection, curveSegmentNumber, loop, onFinishCallback)
+      return startPath(entity, points, duration, faceDirection, segmentCount, loop, onFinishCallback)
     },
     stopPath(entity: Entity) {
       const callback = finishCbs.get(entity)
