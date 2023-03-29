@@ -6,6 +6,8 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Translate an entity](#translate-an-entity)
   - [Rotate an entity](#rotate-an-entity)
   - [Scale an entity](#scale-an-entity)
+  - [Non-linear changes](#non-linear-changes)
+  - [Stopping tweens and callbacks](#stopping-tweens-and-callbacks)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)
@@ -104,6 +106,66 @@ let endSize = Vector3.create(0.75, 2, 0.75)
 
 // Scale a box
 utils.tweens.startScaling(box, startSize, endSize, 2)
+```
+
+### Non-linear changes
+
+All tweens accept an optional argument which sets the rate of change. By default, translation, rotation, or scaling occur at a linear rate, but this can be set to other options. `utils.InterpolationType` enumeration lists all available interpolation types.
+
+The following example moves a box following a quadratic ease-in rate:
+
+```ts
+export * from '@dcl/sdk'
+import { Vector3 } from '@dcl/sdk/math'
+import * as utils from '@dcl/sdk7-utils'
+
+const box = utils.addTestCube()
+let startPos = Vector3.create(1, 1, 1)
+let endPos = Vector3.create(15, 1, 15)
+utils.tweens.startTranslation(box, startPos, endPos, 2, utils.InterpolationType.EASEINQUAD)
+```
+
+### Stopping tweens and callbacks
+
+`utils.tweens.stopTranslation`, `utils.tweens.stopRotation` and `utils.tweens.stopScaling` stop translation, rotation and scaling respectively.
+
+In the following example tweens affecting a box are stopped when player clicks on a sphere:
+
+```ts
+export * from '@dcl/sdk'
+import { Quaternion, Vector3, Color4 } from '@dcl/sdk/math'
+import * as utils from '@dcl/sdk7-utils'
+
+const box = utils.addTestCube()
+utils.tweens.startTranslation(box, Vector3.create(1, 1, 1), Vector3.create(15, 1, 15), 10)
+utils.tweens.startRotation(box, Quaternion.fromEulerDegrees(0, 0, 0), Quaternion.fromEulerDegrees(0, 90, 0), 10)
+utils.tweens.startScaling(box, Vector3.create(1, 1, 1), Vector3.create(2, 2, 2), 10)
+
+const sphere = utils.addTestCube(
+  {position: {x: 2, y: 1, z: 1}},
+  function(event) {
+    utils.tweens.stopTranslation(box)
+    utils.tweens.stopRotation(box)
+    utils.tweens.stopScaling(box)
+  },
+  undefined, Color4.Red(), true
+)
+```
+
+All tweens accept an optional argument `onFinishCallback` which is executed when a tween is complete or when a tween is stopped explicitly via calls described above.
+
+The following example logs a message when the box finishes its movement.
+
+```ts
+export * from '@dcl/sdk'
+import { Vector3 } from '@dcl/sdk/math'
+import * as utils from '@dcl/sdk7-utils'
+
+const box = utils.addTestCube()
+utils.tweens.startTranslation(
+  box, Vector3.create(1, 1, 1), Vector3.create(2, 1, 2), 2, utils.InterpolationType.LINEAR,
+  function() { console.log('Tween is done') }
+)
 ```
 
 ## Action sequence
