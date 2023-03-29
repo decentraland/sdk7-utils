@@ -11,8 +11,8 @@ This library includes a number of helpful pre-built tools that offer simple solu
 - [Perpetual motions](#perpetual-motions)
   - [Perpetual rotation](#perpetual-rotation)
 - [Path following](#path-following)
-  - [Straight path][#straight-path]
-  - [Smooth path][#smooth-path]
+  - [Straight path](#straight-path)
+  - [Smooth path](#smooth-path)
   - [Stopping paths and callbacks](#stopping-paths-and-callbacks)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
