@@ -1,4 +1,4 @@
-# @dcl/ecs-scene-utils
+# @dcl/sdk7-utils
 
 This library includes a number of helpful pre-built tools that include components, methods, and systems. They offer simple solutions to common scenarios that you're likely to run into.
 
