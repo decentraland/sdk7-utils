@@ -5,7 +5,7 @@ This library includes a number of helpful pre-built tools that include component
 - [Tweens](#tweens)
   - [Translate an entity](#translate-an-entity)
   - [Rotate an entity](#rotate-an-entity)
-  - [Scale an entity](#change-scale)
+  - [Scale an entity](#scale-an-entity)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)

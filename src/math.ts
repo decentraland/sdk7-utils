@@ -94,66 +94,54 @@ export enum InterpolationType {
 export function interpolate(type: InterpolationType, t: number): number {
   switch (type) {
     case InterpolationType.LINEAR:
-      	return InterpolateLinear(t)
-		break
+      return InterpolateLinear(t)
     case InterpolationType.EASEINQUAD:
-      	return InterpolateEaseInQuad(t)
-		break
+      return InterpolateEaseInQuad(t)
     case InterpolationType.EASEOUTQUAD:
-      	return InterpolateEaseOutQuad(t)
-		break
+      return InterpolateEaseOutQuad(t)
     case InterpolationType.EASEQUAD:
-      	return InterpolateEaseQuad(t)
-		break
-	case InterpolationType.EASEINSINE:
-		return InterpolateEaseInSine(t)
-		break
-	case InterpolationType.EASEOUTSINE:
-		return InterpolateEaseOutSine(t)
-		break
-	case InterpolationType.EASESINE:
-		return InterpolateEaseInOutSine(t)
-		break
-	case InterpolationType.EASEINEXPO:
-		return InterpolateEaseInExpo(t)
-		break
-	case InterpolationType.EASEOUTEXPO:
-		return InterpolateEaseOutExpo(t)
-		break
-	case InterpolationType.EASEEXPO:
-		return InterpolateEaseInOutExpo(t)
-		break
-	case InterpolationType.EASEINELASTIC:
-		return InterpolateEaseInElastic(t)
-		break
-	case InterpolationType.EASEOUTELASTIC:
-		return InterpolateEaseOutElastic(t)
-		break	
-	case InterpolationType.EASEELASTIC:
-		return InterpolateEaseInOutElastic(t)
-		break
-	case InterpolationType.EASEINBOUNCE:
-		return InterpolateEaseInBounce(t)
-		break
-	case InterpolationType.EASEOUTEBOUNCE:
-		return InterpolateEaseOutBounce(t)
-		break
-	case InterpolationType.EASEBOUNCE:
-		return InterpolateEaseInOutBounce(t)
-		break
+      return InterpolateEaseQuad(t)
+	  case InterpolationType.EASEINSINE:
+		  return InterpolateEaseInSine(t)
+    case InterpolationType.EASEOUTSINE:
+      return InterpolateEaseOutSine(t)
+    case InterpolationType.EASESINE:
+      return InterpolateEaseInOutSine(t)
+    case InterpolationType.EASEINEXPO:
+      return InterpolateEaseInExpo(t)
+    case InterpolationType.EASEOUTEXPO:
+      return InterpolateEaseOutExpo(t)
+    case InterpolationType.EASEEXPO:
+      return InterpolateEaseInOutExpo(t)
+    case InterpolationType.EASEINELASTIC:
+      return InterpolateEaseInElastic(t)
+    case InterpolationType.EASEOUTELASTIC:
+      return InterpolateEaseOutElastic(t)
+    case InterpolationType.EASEELASTIC:
+      return InterpolateEaseInOutElastic(t)
+    case InterpolationType.EASEINBOUNCE:
+      return InterpolateEaseInBounce(t)
+    case InterpolationType.EASEOUTEBOUNCE:
+      return InterpolateEaseOutBounce(t)
+    case InterpolationType.EASEBOUNCE:
+      return InterpolateEaseInOutBounce(t)
     default:
       return InterpolateLinear(t)
   }
 }
+
 function InterpolateLinear(t: number): number {
   return t
 }
+
 function InterpolateEaseInQuad(t: number): number {
   return t * t
 }
+
 function InterpolateEaseOutQuad(t: number): number {
   return t * (2 - t)
 }
+
 function InterpolateEaseQuad(t: number): number {
   return (t * t) / (2.0 * (t * t - t) + 1.0)
 }
