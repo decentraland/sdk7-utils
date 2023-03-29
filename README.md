@@ -1,6 +1,6 @@
 # @dcl/sdk7-utils
 
-This library includes a number of helpful pre-built tools that include components, methods, and systems. They offer simple solutions to common scenarios that you're likely to run into.
+This library includes a number of helpful pre-built tools that offer simple solutions to common scenarios that you're likely to run into.
 
 - [Tweens](#tweens)
   - [Translate an entity](#translate-an-entity)
@@ -236,7 +236,7 @@ const builder = new utils.actions.SequenceBuilder()
   .then(new MoveAction(box, Vector3.create(1, 0, 1)))
 
 // Run built sequence and destroy it once it finishes
-const sequence = new utils.actions.SequenceRunner(
-  engine, builder, () => { sequence.destroy() }
+const runner = new utils.actions.SequenceRunner(
+  engine, builder, () => { runner.destroy() }
 )
 ```
