@@ -1,4 +1,4 @@
-# @dcl/sdk7-utils
+# @dcl-sdk/utils
 
 This library includes a number of helpful pre-built tools that offer simple solutions to common scenarios that you're likely to run into.
 
@@ -27,7 +27,7 @@ To use any of the helpers provided by the utils library
 1. Install it as an `npm` package. Run this command in your scene's project folder:
 
 ```
-npm install @dcl/sdk7-utils -B
+npm install @dcl-sdk/utils -B
 ```
 
 2. Run `dcl start` or `dcl build` so the dependencies are correctly installed.
@@ -35,7 +35,7 @@ npm install @dcl/sdk7-utils -B
 3. Import the library into the scene's script. Add this line at the start of TypeScript files that require it:
 
 ```ts
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 ```
 
 4. In your TypeScript file, write `utils.` and let the suggestions of your IDE show the available helpers.
@@ -53,7 +53,7 @@ This example moves an entity from one position to another over 2 seconds:
 export * from '@dcl/sdk'
 // Import SDK functionality and utils library
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 // Create a box
 const box = utils.addTestCube()
@@ -75,7 +75,7 @@ This example rotates an entity from one directions to another over 2 seconds:
 ```ts
 export * from '@dcl/sdk'
 import { Quaternion } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 
@@ -96,7 +96,7 @@ This example scales an entity from one size to another over 2 seconds:
 ```ts
 export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 
@@ -117,7 +117,7 @@ The following example moves a box following a quadratic ease-in rate:
 ```ts
 export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 let startPos = Vector3.create(1, 1, 1)
@@ -134,7 +134,7 @@ In the following example tweens affecting a box are stopped when player clicks o
 ```ts
 export * from '@dcl/sdk'
 import { Quaternion, Vector3, Color4 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 utils.tweens.startTranslation(box, Vector3.create(1, 1, 1), Vector3.create(15, 1, 15), 10)
@@ -159,7 +159,7 @@ The following example logs a message when the box finishes its movement.
 ```ts
 export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 utils.tweens.startTranslation(
@@ -181,7 +181,7 @@ In the following example, a cube rotates continuously until clicked:
 ```ts
 export * from '@dcl/sdk'
 import { Quaternion } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube(
   {position: {x: 1, y: 1, z: 1}},
@@ -210,7 +210,7 @@ This example moves an entity through four points over 10 seconds:
 ```ts
 export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
 
@@ -235,7 +235,7 @@ This example makes entity follow a smooth path that's subdivided into 20 segment
 ```ts
 export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
 
@@ -262,7 +262,7 @@ The following example logs a messages when the box finishes each segment of the 
 ```ts
 export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
 
@@ -330,7 +330,7 @@ The following example creates a box that changes its scale until clicked. Then i
 export * from '@dcl/sdk'
 import { engine, Transform, Entity } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
-import * as utils from '@dcl/sdk7-utils'
+import * as utils from '@dcl-sdk/utils'
 
 // Set clicked flag
 let boxClicked = false
