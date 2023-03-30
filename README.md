@@ -14,6 +14,7 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Straight path](#straight-path)
   - [Smooth path](#smooth-path)
   - [Stopping paths and callbacks](#stopping-paths-and-callbacks)
+- [Toggle](#toggle)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)
@@ -280,6 +281,89 @@ utils.paths.startStraightPath(
   },
   function(pointIndex, pointCoords, nextPointCoords) {
     console.log(`Reached point ${pointIndex}`)
+  }
+)
+```
+
+## Toggle
+
+`utils.toggles.*` family of functions enables switching an entity between two possible states, running a specified callback on every transition.
+
+`utils.toggles.addToggle` assigns an initial state (either `utils.ToggleState.On` or `utils.ToggleState.Off`) to an entity and the function to be run on a state change.
+
+`utils.toggles.removeToggle` removes the toggle from an entity.
+
+Entity's state can be set explicitly via `utils.toggles.set` or flipped via `utils.toggles.flip`. Query entity's state by calling `utils.toggles.isOn`: it returns a boolean, where `true` means ON.
+
+Callback can be changed by calling `utils.toggles.setCallback`.
+
+The following example switches the color of a box between two colors each time it's clicked.
+
+```ts
+export * from '@dcl/sdk'
+import { Material, InputAction, pointerEventsSystem } from '@dcl/sdk/ecs'
+import { Color4 } from '@dcl/sdk/math'
+import * as utils from '@dcl-sdk/utils'
+
+const box = utils.addTestCube({position: {x: 5, y: 1, z: 5}})
+
+// Box is initally green
+Material.setPbrMaterial(box, {albedoColor: Color4.Green()})
+
+// Add a toggle
+utils.toggles.addToggle(box, utils.ToggleState.On, function(value) {
+  if (value == utils.ToggleState.On) {
+    // Set color to green
+    Material.setPbrMaterial(box, {albedoColor: Color4.Green()})
+  } else {
+    // Set color to red
+    Material.setPbrMaterial(box, {albedoColor: Color4.Red()})
+  }
+})
+
+// Listen for click on the box and toggle its state
+pointerEventsSystem.onPointerDown(
+  box,
+  function(event) { utils.toggles.flip(box)},
+  {
+    button: InputAction.IA_POINTER,
+    hoverText: 'click'
+  }
+)
+```
+
+### Combine Toggle with Translate
+
+This example combines a toggle with a tween to switch an entity between two positions every time it's clicked.
+
+```ts
+export * from '@dcl/sdk'
+import { InputAction, pointerEventsSystem } from '@dcl/sdk/ecs'
+import { Vector3 } from '@dcl/sdk/math'
+import * as utils from '@dcl-sdk/utils'
+
+const box = utils.addTestCube({position: {x: 5, y: 1, z: 5}})
+
+// Define two positions for toggling
+let pos1 = Vector3.create(5, 1, 5)
+let pos2 = Vector3.create(5, 1, 6)
+
+// Box is moved after its state changes
+utils.toggles.addToggle(box, utils.ToggleState.Off, function(value) {
+  if (value == utils.ToggleState.On) {
+    utils.tweens.startTranslation(box, pos1, pos2, 1)
+  } else {
+    utils.tweens.startTranslation(box, pos2, pos1, 1)
+  }
+})
+
+// Listen for click on the box and toggle its state
+pointerEventsSystem.onPointerDown(
+  box,
+  function(event) { utils.toggles.flip(box)},
+  {
+    button: InputAction.IA_POINTER,
+    hoverText: 'click'
   }
 )
 ```
