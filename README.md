@@ -15,6 +15,10 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Smooth path](#smooth-path)
   - [Stopping paths and callbacks](#stopping-paths-and-callbacks)
 - [Toggle](#toggle)
+- [Timers](#time)
+  - [Delay a function](#delay-a-function)
+  - [Repeat at an interval](#repeat-at-an-interval)
+  - [Canceling execution](#canceling-execution)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)
@@ -332,7 +336,7 @@ pointerEventsSystem.onPointerDown(
 )
 ```
 
-### Combine Toggle with Translate
+### Combine toggle with a tween
 
 This example combines a toggle with a tween to switch an entity between two positions every time it's clicked.
 
@@ -361,6 +365,75 @@ utils.toggles.addToggle(box, utils.ToggleState.Off, function(value) {
 pointerEventsSystem.onPointerDown(
   box,
   function(event) { utils.toggles.flip(box)},
+  {
+    button: InputAction.IA_POINTER,
+    hoverText: 'click'
+  }
+)
+```
+
+## Timers
+
+These tools are all related to the passage of time in the scene.
+
+### Delay a function
+
+Use `utils.timers.setTimeout` to delay the execution of a function by a given amount of milliseconds.
+
+This example delays the logging of a message by 1000 milliseconds.
+
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+utils.timers.setTimeout(
+  function() { console.log('1 second passed')},
+  1000
+)
+```
+
+### Repeat at an interval
+
+Use `utils.timers.setInterval` to execute a function every `n` milliseconds.
+
+This example creates an entity that changes its scale to a random size every 2 seconds.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+import { Transform } from '@dcl/sdk/ecs'
+import { Vector3 } from '@dcl/sdk/math'
+
+const box = utils.addTestCube()
+
+utils.timers.setInterval(function () {
+  let size = Math.random()
+  Transform.getMutable(box).scale = Vector3.create(size, size, size)
+}, 2000)
+```
+
+### Canceling execution
+
+Both `utils.timers.setInterval` and `utils.timers.setTimeout` return a unique `TimerId` which can be used to cancel delayed or repeated execution by calling `utils.timers.clearInterval` and `utils.timers.clearTimeout` respectively. In the example below a box keep changing its color every second until it's clicked on.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+import { Material, InputAction, pointerEventsSystem } from '@dcl/sdk/ecs'
+import { Color4 } from '@dcl/sdk/math'
+
+const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+
+// Store a timer id in a variable
+const timerId = utils.timers.setInterval(function () {
+  Material.setPbrMaterial(box, {albedoColor: Color4.create(Math.random(), Math.random(),  Math.random(), 1)})
+}, 1000)
+
+pointerEventsSystem.onPointerDown(
+  box,
+  // Cancel a timer when user clicks on a box
+  function(event) { utils.timers.clearInterval(timerId) },
   {
     button: InputAction.IA_POINTER,
     hoverText: 'click'
