@@ -243,7 +243,7 @@ function createTriggers(targetEngine: IEngine) {
 
   targetEngine.addSystem(system, priority.TriggerSystemPriority)
 
-  return {
+  const triggersInterface = {
     addTrigger(
       entity: Entity,
       layerMask: number,
@@ -343,6 +343,12 @@ function createTriggers(targetEngine: IEngine) {
     getSphereAreas(entity: Entity) {
       return Trigger.getMutable(entity).sphereAreas
     },
+    setOnEnterCallback(entity: Entity, callback: OnTriggerEnterCallback) {
+      triggerEnterCbs.set(entity, callback)
+    },
+    setOnExitCallback(entity: Entity, callback: OnTriggerExitCallback) {
+      triggerExitCbs.set(entity, callback)
+    },
     enableDebugDraw(enabled: boolean) {
       debugDraw = enabled
       if (!enabled) {
@@ -357,6 +363,18 @@ function createTriggers(targetEngine: IEngine) {
       return debugDraw
     }
   }
+
+  triggersInterface.addTrigger(
+    targetEngine.PlayerEntity, 1, 1,
+    [{
+      type: 'box',
+      scale: {x: 0.65, y: 1.92, z: 0.65},
+      position: {x: 0, y: 0.15, z: 0}
+    }],
+    undefined, undefined, Color3.Green()
+  )
+
+  return triggersInterface
 }
 
 export const triggers = createTriggers(engine)
