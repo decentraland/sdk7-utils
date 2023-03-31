@@ -36,7 +36,6 @@ export {
 export {
   Triggers,
   triggers,
-  oneTimeTrigger,
 } from './trigger'
 
 export {

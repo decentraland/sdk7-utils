@@ -319,6 +319,20 @@ function createTriggers(targetEngine: IEngine) {
           callback(entity)
       }
     },
+    oneTimeTrigger(
+      entity: Entity,
+      layerMask: number,
+      triggeredByMask: number,
+      areas?: Array<TriggerAreaSpec>,
+      onEnterCallback?: OnTriggerEnterCallback,
+      debugColor?: Color3
+    ) {
+      this.addTrigger(entity, layerMask, triggeredByMask, areas, function(e) {
+        triggers.removeTrigger(entity)
+        if (onEnterCallback)
+          onEnterCallback(e)
+      }, undefined, debugColor)
+    },
     enableTrigger(entity: Entity, enabled: boolean) {
       Trigger.getMutable(entity).active = enabled
     },
@@ -378,19 +392,3 @@ function createTriggers(targetEngine: IEngine) {
 }
 
 export const triggers = createTriggers(engine)
-
-export function oneTimeTrigger(
-  layerMask: number,
-  triggeredByMask: number,
-  areas?: Array<TriggerAreaSpec>,
-  onEnterCallback?: OnTriggerEnterCallback
-) {
-  const entity = engine.addEntity()
-  triggers.addTrigger(entity, layerMask, triggeredByMask, areas, function(e) {
-    triggers.removeTrigger(entity)
-    if (onEnterCallback)
-      onEnterCallback(e)
-    engine.removeEntity(entity)
-  })
-  return entity
-}
