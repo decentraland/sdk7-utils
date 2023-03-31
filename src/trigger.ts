@@ -3,6 +3,20 @@ import { Vector3, Color4, Color3 } from '@dcl/sdk/math'
 import { getWorldPosition, getWorldRotation, areAABBIntersecting, areAABBSphereIntersecting, areSpheresIntersecting } from './math'
 import { priority } from './priority'
 
+export type TriggerBoxAreaSpec = {
+  type: 'box',
+  position?: Vector3,
+  scale?: Vector3
+}
+
+export type TriggerSphereAreaSpec = {
+  type: 'sphere',
+  position?: Vector3,
+  radius?: number
+}
+
+export type TriggerAreaSpec = TriggerBoxAreaSpec | TriggerSphereAreaSpec
+
 export type TriggerBoxArea = {
   position: Vector3,
   size: Vector3
@@ -234,8 +248,7 @@ function createTriggers(targetEngine: IEngine) {
       entity: Entity,
       layerMask: number,
       triggeredByMask: number,
-      boxAreas: Array<TriggerBoxArea>,
-      sphereAreas: Array<TriggerSphereArea>,
+      areas?: Array<TriggerAreaSpec>,
       onEnterCallback?: OnTriggerEnterCallback,
       onExitCallback?: OnTriggerExitCallback,
       debugColor?: Color3
@@ -244,6 +257,27 @@ function createTriggers(targetEngine: IEngine) {
       activeCollisions.set(entity, new Set())
       triggerEnterCbs.set(entity, onEnterCallback)
       triggerExitCbs.set(entity, onExitCallback)
+
+      if (!areas)
+        areas = [{type: 'box'}]
+
+      const boxAreas = []
+      const sphereAreas = []
+
+      for (const area of areas) {
+        if (area.type == 'box') {
+          boxAreas.push({
+            position: area.position ? area.position : Vector3.Zero(),
+            size: area.scale ? area.scale : Vector3.One()
+          })
+        } else {
+          sphereAreas.push({
+            position: area.position ? area.position : Vector3.Zero(),
+            radius: area.radius ? area.radius : 1
+          })
+        }
+      }
+
       Trigger.createOrReplace(entity, {
         active: true,
         layerMask: layerMask,
@@ -330,12 +364,11 @@ export const triggers = createTriggers(engine)
 export function oneTimeTrigger(
   layerMask: number,
   triggeredByMask: number,
-  boxAreas: Array<TriggerBoxArea>,
-  sphereAreas: Array<TriggerSphereArea>,
+  areas?: Array<TriggerAreaSpec>,
   onEnterCallback?: OnTriggerEnterCallback
 ) {
   const entity = engine.addEntity()
-  triggers.addTrigger(entity, layerMask, triggeredByMask, boxAreas, sphereAreas, function(e) {
+  triggers.addTrigger(entity, layerMask, triggeredByMask, areas, function(e) {
     triggers.removeTrigger(entity)
     if (onEnterCallback)
       onEnterCallback(e)
