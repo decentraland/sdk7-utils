@@ -2,6 +2,9 @@
 
 This library includes a number of helpful pre-built tools that offer simple solutions to common scenarios that you're likely to run into.
 
+- [Debug helpers](#debug-helpers)
+  - [Label](#label)
+  - [Cube](#cube)
 - [Tweens](#tweens)
   - [Translate an entity](#translate-an-entity)
   - [Rotate an entity](#rotate-an-entity)
@@ -19,6 +22,10 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Delay a function](#delay-a-function)
   - [Repeat at an interval](#repeat-at-an-interval)
   - [Canceling execution](#canceling-execution)
+- [Math](#math)
+  - [Remap](#remap)
+  - [World position](#world-position)
+  - [World rotation](#world-rotation)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)
@@ -44,6 +51,58 @@ import * as utils from '@dcl-sdk/utils'
 ```
 
 4. In your TypeScript file, write `utils.` and let the suggestions of your IDE show the available helpers.
+
+## Debug helpers
+
+### Label
+
+Add a text label floating over an entity using `utils.addLabel`. It has two required arguments:
+
+- `text`: The string of text to display.
+- `parent`: The entity to set the label on.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+const cube = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+utils.addLabel('Random cube', cube)
+```
+
+`utils.addLabel` also lets you set the following:
+
+- `billboard`: If true, label turns to always face player. True by default.
+- `color`: Text color. Black by default.
+- `size`: Text font size, 3 by default.
+- `textOffset`: Offset from parent entity's position. By default 1.5 meters above the parent.
+
+> Tip: `utils.addLabel` returns the created entity used for the text. You can then tweak this entity in any way you choose.
+
+### Debug cube
+
+Render a simple clickable cube to use as a trigger when debugging a scene with `utils.addTestCube`. It has two required arguments:
+
+- `transform`: The position, rotation and/or scale of the cube, expressed as a `TransformType` object, as gets passed when creating a `Transform` component.
+- `triggeredFunction`: A function that gets called every time the cube is clicked.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+utils.addTestCube(
+  {position: {x: 2, y: 1, z: 2}},
+  (event) => { console.log('Cube clicked') }
+)
+```
+
+`utils.addTestCube` also lets you set the following:
+
+- `label`: An optional label to display floating over the cube.
+- `color`: A color for the cube's material.
+- `sphere`: If true, it renders as a Sphere instead of a cube.
+- `noCollider`: If true, the cube won't have a collider and will let players walk through it.
+
+> Tip: `utils.addTestCube` returns the created entity for the cube. You can then tweak this entity in any way you choose.
 
 ## Tweens
 
@@ -439,6 +498,76 @@ pointerEventsSystem.onPointerDown(
     hoverText: 'click'
   }
 )
+```
+
+## Math
+
+### Remap
+
+`utils.remap` maps a value from one range of values to its equivalent, scaled in proportion to another range of values, using maximum and minimum. It takes the following arguments:
+
+- `value`: Input number to convert
+- `min1`: Minimum value in the range of the input.
+- `max1`: Maximum value in the range of the input.
+- `min2`: Minimum value in the range of the output.
+- `max2`: Maximum value in the range of the output.
+
+The following example maps the value _5_ from a scale of 0 to 10 to a scale of 300 to 400. The resulting value is 350, as it keeps the same proportion relative to the new maximum and minimum values.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+let input = 5
+let result = utils.remap(input, 0, 10, 300, 400)
+console.log(result)
+```
+
+### World position
+
+If an entity is parented to another entity, or to the player, then its Transform position will be relative to its parent. To find what its global position is, taking into account any parents, use `utils.getWorldPosition`. It returns a `Vector3` object, with the resulting position of adding the given entity and all its chain of parents.
+
+The following example sets a cube as a child of another cube, and logs its world position.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+import { Transform } from '@dcl/sdk/ecs'
+
+const cube = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+const childCube = utils.addTestCube({position: {x: 0, y: 1, z: 0}})
+Transform.getMutable(childCube).parent = cube
+
+const worldPos = utils.getWorldPosition(childCube)
+console.log(`${worldPos.x} ${worldPos.y} ${worldPos.z}`)
+```
+
+### World rotation
+
+If an entity is parented to another entity, or to the player, then its Transform rotation will be relative to its parent. To find what its global rotation is, taking into account any parents, use `utils.getWorldRotation`. It returns a `Quaternion` object, with the resulting rotation of multiplying the given entity to all its chain of parents.
+
+The following example sets a cube as a child of another cube, and logs its world rotation.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+import { Transform } from '@dcl/sdk/ecs'
+import { Quaternion } from '@dcl/sdk/math'
+
+const cube = utils.addTestCube({
+  position: {x: 1, y: 1, z: 1},
+  rotation: Quaternion.fromEulerDegrees(0, 30, 0)
+})
+const childCube = utils.addTestCube({
+  position: {x: 0, y: 1, z: 0},
+  rotation: Quaternion.fromEulerDegrees(0, 60, 0)
+})
+Transform.getMutable(childCube).parent = cube
+
+const worldRot = Quaternion.toEulerAngles(
+  utils.getWorldRotation(childCube)
+)
+console.log(`${worldRot.x} ${worldRot.y} ${worldRot.z}`)
 ```
 
 ## Action sequence
