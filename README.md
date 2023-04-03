@@ -521,7 +521,7 @@ Use `utils.triggers.addTrigger` to add a trigger area to an entity. It has the f
 - `onExitCallback`: This function will be called when a trigger's area no longer intersects with an area of another trigger. It will receive an entity which owns formerly intersecting trigger as a single argument.
 - `debugColor`: Defines a color of trigger area's shapes when debug visualization is active: call `utils.triggers.enableDebugDraw(true)` to enable it. 
 
-The following example creates a trigger that changes its position randomly when triggered by the player. Please not that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape.
+The following example creates a trigger that changes its position randomly when triggered by the player. Please note that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape.
 
 ```ts
 export * from "@dcl/sdk"
@@ -549,11 +549,11 @@ utils.triggers.addTrigger(box, 1, 1, [{type: 'box'}], function(otherEntity) {
 
 ### Disable a trigger
 
-You can temporarily disable a trigger by calling `utils.triggers.enableTrigger(entity, false)`. Enable it again by calling `utils.triggers.enableTrigger(entity, true)`. Remove trigger altogether by calling `utils.triggers.removeTrigger(entity)`.
+You can temporarily disable a trigger by calling `utils.triggers.disableTrigger(entity, false)`. Enable it again by calling `utils.triggers.enableTrigger(entity, true)`. Remove trigger altogether by calling `utils.triggers.removeTrigger(entity)`.
 
 ### One time Trigger
 
-As a shortcut for creating a trigger area that is only actioned when the player first walks in or out, use the `utils.triggers.oneTimeTrigger`. This function has same arguments as `utils.triggers.addTrigger`, apart from `onExitCallback` which it doesn't have. This function is especially useful for optimizing the loading of a scene, so that certain elements aren't loaded till a player walks into an area.
+As a shortcut for creating a trigger area that is only actioned once when the player first walks in or out, use the `utils.triggers.oneTimeTrigger`. This function has same arguments as `utils.triggers.addTrigger`, apart for `onExitCallback`. This function is especially useful for optimizing the loading of a scene, so that certain elements aren't loaded till a player walks into an area.
 
 In the example below, the trigger area will only display welcome message the first time a player walks in. After that, the entity is removed from the scene.
 
