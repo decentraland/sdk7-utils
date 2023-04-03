@@ -580,13 +580,13 @@ You can define different layers (bitwise) for triggers, and set which other laye
 
 The following example creates a scene that has:
 
-- food (cones)
-- mice (spheres)
-- cats (boxes)
+- food (green box)
+- mouse (blue sphere)
+- cat (red sphere)
 
-Food is triggered (or eaten) by both cats or mice. Also, mice are eaten by cats, so a mouse's trigger area is triggered by only cats.
+Food is triggered (or eaten) by both cat and mouse. Also, mice are eaten by cats, so a mouse's trigger area is triggered only by a cat.
 
-Cats and mice always move towards the food. When food or mice are eaten, they respawn in a random location.
+Cat and mouse always move towards the food. When food or mouse are eaten, they respawn in a random location.
 
 ```ts
 export * from "@dcl/sdk"
