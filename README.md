@@ -22,6 +22,11 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Delay a function](#delay-a-function)
   - [Repeat at an interval](#repeat-at-an-interval)
   - [Canceling execution](#canceling-execution)
+- [Triggers](#triggers)
+  - [Create a trigger](#create-a-trigger)
+  - [Disable a trigger](#disable-a-trigger)
+  - [One time trigger](#one-time-trigger)
+  - [Trigger layers](#trigger-layers)
 - [Math](#math)
   - [Remap](#remap)
   - [World position](#world-position)
@@ -497,6 +502,187 @@ pointerEventsSystem.onPointerDown(
     button: InputAction.IA_POINTER,
     hoverText: 'click'
   }
+)
+```
+
+## Triggers
+
+`utils.triggers.*` family of functions powers trigger areas which can be added to entities and which report when intersections with other trigger areas arise or cease.
+
+### Create a trigger
+
+Use `utils.triggers.addTrigger` to add a trigger area to an entity. It has the following arguments:
+
+- `entity`: Trigger's owner entity. Trigger area's coordinates depend on `entity`'s Transform component.
+- `layerMask`: A bit mask which specificies layers to which this trigger belongs to. A set bit on N-th position indicates that a trigger belongs to layer N. For example, to specify a trigger belonging to both layers 1 and 3, set `layerMask` to `1 | (1 << 2)`.
+- `triggeredByMask`: A bit mask which constraints trigger's reactions to intersection with other triggers. If set to zero, a trigger will react to all other triggers. Otherwise, an intersection will be reported if and only if bitwise AND operation between this trigger's `triggeredByMask` and other trigger's `layerMask` is not zero. A set bit on N-th position indicates that this trigger reacts to triggers that belong to layer N.
+- `areas`: An array of shapes (either boxes or spheres) which describes trigger area. A box is indicated by the object `{type: 'box', position?: Vector3, scale?: Vector3}`, and a sphere by the object `{type: 'sphere', position?: Vector3, radius?: number}`. `position`, `scale` and `radius` fields are optional and default to `{x: 0, y: 0, z: 0}`, `{x: 1, y: 1, z: 1}` and `1` respectively. Please note that box's or sphere's coordinates are relative to `entity`'s Transform. Additionally, box areas always stay axis-aligned, disregarding `entity`'s rotation.
+- `onEnterCallback`: This function will be called when a trigger's area intersects with an area of another, layer-compatible trigger. It will receive an entity which owns intersecting trigger as a single argument.
+- `onExitCallback`: This function will be called when a trigger's area no longer intersects with an area of another trigger. It will receive an entity which owns formerly intersecting trigger as a single argument.
+- `debugColor`: Defines a color of trigger area's shapes when debug visualization is active: call `utils.triggers.enableDebugDraw(true)` to enable it. 
+
+The following example creates a trigger that changes its position randomly when triggered by the player. Please not that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape.
+
+```ts
+export * from "@dcl/sdk"
+import { Transform } from "@dcl/sdk/ecs"
+import * as utils from '@dcl-sdk/utils'
+
+// Create a box with disabled collision
+const box = utils.addTestCube(
+  { position: {x: 2, y: 1, z: 2} },
+  undefined, undefined, undefined, undefined,
+  true
+)
+
+utils.triggers.addTrigger(box, 1, 1, [{type: 'box'}], function(otherEntity) {
+  console.log(`triggered by ${otherEntity}!`)
+  Transform.getMutable(box).position = {
+    x: 1 + Math.random() * 14,
+    y: 1,
+    z: 1 + Math.random() * 14
+  }
+})
+```
+
+> Tip: to set a custom shape and other parameters of player's trigger first remove a default trigger via `utils.triggers.removeTrigger(engine.PlayerEntity)` and then specify your own trigger via `utils.triggers.addTrigger(engine.PlayerEntity, ...)`.
+
+### Disable a trigger
+
+You can temporarily disable a trigger by calling `utils.triggers.enableTrigger(entity, false)`. Enable it again by calling `utils.triggers.enableTrigger(entity, true)`. Remove trigger altogether by calling `utils.triggers.removeTrigger(entity)`.
+
+### One time Trigger
+
+As a shortcut for creating a trigger area that is only actioned when the player first walks in or out, use the `utils.triggers.oneTimeTrigger`. This function has same arguments as `utils.triggers.addTrigger`, apart from `onExitCallback` which it doesn't have. This function is especially useful for optimizing the loading of a scene, so that certain elements aren't loaded till a player walks into an area.
+
+In the example below, the trigger area will only display welcome message the first time a player walks in. After that, the entity is removed from the scene.
+
+```ts
+export * from "@dcl/sdk"
+import { engine, Transform } from "@dcl/sdk/ecs"
+import * as utils from '@dcl-sdk/utils'
+
+const triggerEntity = engine.addEntity()
+Transform.create(triggerEntity)
+
+utils.triggers.oneTimeTrigger(
+  triggerEntity, 1, 1,
+  [{type: 'box', position: {x: 4, y: 1, z: 4}, scale: {x: 8, y: 1, z: 8}}],
+  function(otherEntity) {
+    console.log('Welcome!')
+  }
+)
+```
+
+### Trigger layers
+
+You can define different layers (bitwise) for triggers, and set which other layers can trigger it.
+
+The following example creates a scene that has:
+
+- food (cones)
+- mice (spheres)
+- cats (boxes)
+
+Food is triggered (or eaten) by both cats or mice. Also, mice are eaten by cats, so a mouse's trigger area is triggered by only cats.
+
+Cats and mice always move towards the food. When food or mice are eaten, they respawn in a random location.
+
+```ts
+export * from "@dcl/sdk"
+import { engine, Transform } from "@dcl/sdk/ecs"
+import * as utils from '@dcl-sdk/utils'
+import { Color4 } from "@dcl/sdk/math"
+
+// Define layers
+const FOOD_LAYER = 1
+const MOUSE_LAYER = (1 << 1)
+const CAT_LAYER = (1 << 2)
+
+// Remove default trigger from a player so that they don't interfere
+utils.triggers.removeTrigger(engine.PlayerEntity)
+
+// Create food
+const food = utils.addTestCube(
+  {position: {x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14}},
+  undefined, undefined, Color4.Green(), false, true
+)
+utils.triggers.addTrigger(
+  food, FOOD_LAYER, MOUSE_LAYER | CAT_LAYER,
+  [{type: 'box'}],
+  function(otherEntity) {
+    // Food was eaten either by cat or mouse, "respawn" it
+    Transform.getMutable(food).position = {
+	    x: 1 + Math.random() * 14,
+	    y: 0,
+	    z: 1 + Math.random() * 14
+    }
+    // Set mouse and cat moving towards food
+    utils.tweens.startTranslation(
+      mouse,
+      Transform.get(mouse).position,
+      Transform.get(food).position,
+      4
+    )
+    utils.tweens.startTranslation(
+      cat,
+      Transform.get(cat).position,
+      Transform.get(food).position,
+      4
+    )
+  }
+)
+
+// Create mouse
+const mouse = utils.addTestCube(
+  {
+    position: {x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14},
+    scale: {x: 0.5, y: 0.5, z: 0.5}
+  },
+  undefined, undefined, Color4.Blue(), true, true
+)
+utils.triggers.addTrigger(
+  mouse, MOUSE_LAYER, CAT_LAYER,
+  [{type: 'sphere', radius: 0.25}],
+  function(otherEntity) {
+    // Mouse was eaten by cat, "respawn" it
+    Transform.getMutable(mouse).position = {
+	    x: 1 + Math.random() * 14,
+	    y: 0,
+	    z: 1 + Math.random() * 14
+    }
+    // Set mouse moving towards food
+    utils.tweens.startTranslation(
+      mouse,
+      Transform.get(mouse).position,
+      Transform.get(food).position,
+      4
+    )
+  }
+)
+
+// Create cat
+const cat = utils.addTestCube(
+  {position: {x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14}},
+  undefined, undefined, Color4.Red(), true, true
+)
+utils.triggers.addTrigger(
+  cat, CAT_LAYER, CAT_LAYER,
+  [{type: 'sphere', radius: 0.5}]
+)
+
+// Set mouse and cat moving towards food
+utils.tweens.startTranslation(
+  mouse,
+  Transform.get(mouse).position,
+  Transform.get(food).position,
+  4
+)
+utils.tweens.startTranslation(
+  cat,
+  Transform.get(cat).position,
+  Transform.get(food).position,
+  4
 )
 ```
 
