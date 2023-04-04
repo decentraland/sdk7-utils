@@ -1,4 +1,4 @@
-import { engine, Entity, IEngine, MeshRenderer, Schemas, Transform, Material, DeepReadonly } from '@dcl/sdk/ecs'
+import { engine, Entity, IEngine, MeshRenderer, Schemas, Transform, Material, DeepReadonly, EntityState } from '@dcl/sdk/ecs'
 import { Vector3, Color4, Color3 } from '@dcl/sdk/math'
 import { getWorldPosition, getWorldRotation, areAABBIntersecting, areAABBSphereIntersecting, areSpheresIntersecting } from './math'
 import { priority } from './priority'
@@ -192,11 +192,29 @@ function createTriggers(targetEngine: IEngine) {
     const collisionsEnded = []
     const shapeWorldPositions: Map<Entity, ShapeWorldPositions> = new Map()
 
-    for (const [entity, trigger] of targetEngine.getEntitiesWith(Trigger, Transform)) {
+    for (const entity of activeCollisions.keys()) {
+      if (targetEngine.getEntityState(entity) == EntityState.Removed || !Trigger.has(entity)) {
+        for (const debugEntity of debugEntities.get(entity)!)
+          targetEngine.removeEntity(debugEntity)
+
+        for (const collisions of activeCollisions.values()) {
+          if (collisions.has(entity))
+            collisions.delete(entity)
+        }
+
+        debugEntities.delete(entity)
+        activeCollisions.delete(entity)
+        triggerEnterCbs.delete(entity)
+        triggerExitCbs.delete(entity)
+        continue
+      }
+
       const boxPositions = []
       const spherePositions = []
       const entityWorldPosition = getWorldPosition(entity)
       const entityWorldRotation = getWorldRotation(entity)
+      const trigger = Trigger.get(entity)
+
       for (const shape of trigger.boxAreas) {
         boxPositions.push(Vector3.add(entityWorldPosition, Vector3.rotate(shape.position, entityWorldRotation)))
       }
@@ -206,7 +224,7 @@ function createTriggers(targetEngine: IEngine) {
       shapeWorldPositions.set(entity, {box: boxPositions, sphere: spherePositions})
     }
 
-    for (const [entity] of targetEngine.getEntitiesWith(Trigger, Transform)) {
+    for (const entity of activeCollisions.keys()) {
       const newCollisions = computeCollisions(entity, shapeWorldPositions)
       const oldCollisions = activeCollisions.get(entity)!
       

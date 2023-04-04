@@ -1,4 +1,4 @@
-import { engine, Entity, IEngine, Schemas, Transform } from '@dcl/sdk/ecs'
+import { engine, Entity, EntityState, IEngine, Schemas, Transform } from '@dcl/sdk/ecs'
 import { Scalar, Vector3, Quaternion } from '@dcl/sdk/math'
 import { createCatmullRomSpline } from './math'
 import { priority } from './priority'
@@ -27,7 +27,13 @@ function createPaths(targetEngine: IEngine) {
     const deadPaths = []
     const pointReachedPaths = []
 
-    for (const [entity] of targetEngine.getEntitiesWith(FollowPath, Transform)) {
+    for (const entity of finishCbs.keys()) {
+      if (targetEngine.getEntityState(entity) == EntityState.Removed || !FollowPath.has(entity)) {
+        finishCbs.delete(entity)
+        pointReachedCbs.delete(entity)
+        continue
+      }
+
       const path = FollowPath.getMutable(entity)
       path.normalizedTime = Scalar.clamp(path.normalizedTime + dt * path.speed[path.currentIndex], 0, 1)
       const transform = Transform.getMutable(entity)

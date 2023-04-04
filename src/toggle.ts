@@ -1,4 +1,5 @@
-import { engine, Entity, IEngine, Schemas } from '@dcl/sdk/ecs'
+import { engine, Entity, EntityState, IEngine, Schemas } from '@dcl/sdk/ecs'
+import { timers, Timers } from './timer';
 
 export enum ToggleState {
   Off = 0,
@@ -9,12 +10,20 @@ export type ToggleCallback = (state: ToggleState) => void
 
 export type Toggles = ReturnType<typeof createToggles>
 
-function createToggles(targetEngine: IEngine) {
+function createToggles(targetEngine: IEngine, timers: Timers) {
   const Toggle = targetEngine.defineComponent('dcl.utils.Toggle', {
     state: Schemas.EnumNumber(ToggleState, ToggleState.Off)
   })
 
   let toggles: Map<Entity, ToggleCallback | undefined> = new Map();
+
+  timers.setInterval(function () {
+    for (const entity of toggles.keys()) {
+      if (targetEngine.getEntityState(entity) == EntityState.Removed || !Toggle.has(entity)) {
+        toggles.delete(entity)
+      }
+    }
+  }, 5000)
 
   return {
     addToggle(entity: Entity, state: ToggleState, callback?: ToggleCallback) {
@@ -46,4 +55,4 @@ function createToggles(targetEngine: IEngine) {
   }
 }
 
-export const toggles = createToggles(engine)
+export const toggles = createToggles(engine, timers)

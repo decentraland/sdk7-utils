@@ -1,4 +1,4 @@
-import { engine, Entity, IEngine, TransformType, Schemas, Transform } from '@dcl/sdk/ecs'
+import { engine, Entity, IEngine, TransformType, Schemas, Transform, EntityState } from '@dcl/sdk/ecs'
 import { Scalar, Vector3, Quaternion } from '@dcl/sdk/math'
 import { InterpolationType, interpolate } from './math'
 import { priority } from './priority'
@@ -39,7 +39,12 @@ function createTweens(targetEngine: IEngine) {
     return function system(dt: number) {
       const deadTweens = []
 
-      for (const [entity] of targetEngine.getEntitiesWith(tweenType, Transform)) {
+      for (const entity of callbacks.keys()) {
+        if (targetEngine.getEntityState(entity) == EntityState.Removed || !tweenType.has(entity)) {
+          callbacks.delete(entity)
+          continue
+        }
+
         const tween = tweenType.getMutable(entity)
         tween.normalizedTime = Scalar.clamp(tween.normalizedTime + dt * tween.speed, 0, 1)
         const lerpTime = interpolate(tween.interpolationType, tween.normalizedTime)
