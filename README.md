@@ -549,7 +549,7 @@ utils.triggers.addTrigger(box, 1, 1, [{type: 'box'}], function(otherEntity) {
 
 ### Disable a trigger
 
-You can temporarily disable a trigger by calling `utils.triggers.disableTrigger(entity, false)`. Enable it again by calling `utils.triggers.enableTrigger(entity, true)`. Remove trigger altogether by calling `utils.triggers.removeTrigger(entity)`.
+You can temporarily disable a trigger by calling `utils.triggers.enableTrigger(entity, false)`. Enable it again by calling `utils.triggers.enableTrigger(entity, true)`. Remove trigger altogether by calling `utils.triggers.removeTrigger(entity)`.
 
 ### One time Trigger
 
