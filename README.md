@@ -514,14 +514,14 @@ pointerEventsSystem.onPointerDown(
 Use `utils.triggers.addTrigger` to add a trigger area to an entity. It has the following arguments:
 
 - `entity`: Trigger's owner entity. Trigger area's coordinates depend on `entity`'s Transform component.
-- `layerMask`: A bit mask which specificies layers to which this trigger belongs to. A set bit on N-th position indicates that a trigger belongs to layer N. For example, to specify a trigger belonging to both layers 1 and 3, set `layerMask` to `1 | (1 << 2)`.
-- `triggeredByMask`: A bit mask which constraints trigger's reactions to intersection with other triggers. If set to zero, a trigger will react to all other triggers. Otherwise, an intersection will be reported if and only if bitwise AND operation between this trigger's `triggeredByMask` and other trigger's `layerMask` is not zero. A set bit on N-th position indicates that this trigger reacts to triggers that belong to layer N.
+- `layerMask`: Specificies layers to which this trigger belongs to. The library provides eight layers: `utils.LAYER_1`, ... `utils.LAYER_8`. If an entity is supposed to belong to multiple layers, for example layer 1 and layer 3, set `layerMask` to a combination of layer constants separated by `|` (bitwise OR): `utils.LAYER_1 | utils.LAYER_3`. If an entity is supposed to belong to all 8 layers, set `layerMask` to `utils.ALL_LAYERS`. Default value of `layerMask` is `utils.NO_LAYERS`, i.e. an entity does not belong to any layer and won't be able to trigger other entities (it still can be triggered by others, see `triggeredByMask` below).
+- `triggeredByMask`: Specifies layers which can trigger an entity. For example, if an entity is supposed to be triggered by entities that belong to either or both layer 2 and layer 4, set `triggeredByMask` to `utils.LAYER_2 | utils.LAYER_4`. Default value of `triggeredByMask` is `utils.NO_LAYERS`, i.e. an entity won't be triggered by other entities at all.  When set to `utils.ALL_LAYERS` an entity will be triggered by all entities that belong to at least one layer.
 - `areas`: An array of shapes (either boxes or spheres) which describes trigger area. A box is indicated by the object `{type: 'box', position?: Vector3, scale?: Vector3}`, and a sphere by the object `{type: 'sphere', position?: Vector3, radius?: number}`. `position`, `scale` and `radius` fields are optional and default to `{x: 0, y: 0, z: 0}`, `{x: 1, y: 1, z: 1}` and `1` respectively. Please note that box's or sphere's coordinates are relative to `entity`'s Transform. Additionally, box areas always stay axis-aligned, disregarding `entity`'s rotation.
 - `onEnterCallback`: This function will be called when a trigger's area intersects with an area of another, layer-compatible trigger. It will receive an entity which owns intersecting trigger as a single argument.
 - `onExitCallback`: This function will be called when a trigger's area no longer intersects with an area of another trigger. It will receive an entity which owns formerly intersecting trigger as a single argument.
 - `debugColor`: Defines a color of trigger area's shapes when debug visualization is active: call `utils.triggers.enableDebugDraw(true)` to enable it. 
 
-The following example creates a trigger that changes its position randomly when triggered by the player. Please note that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape.
+The following example creates a trigger that changes its position randomly when triggered by the player. Please note that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape with `layerMask` set to `utils.LAYER_1` and `triggeredByMask` set to `utils.NO_LAYERS`.
 
 ```ts
 export * from "@dcl/sdk"
@@ -535,7 +535,7 @@ const box = utils.addTestCube(
   true
 )
 
-utils.triggers.addTrigger(box, 1, 1, [{type: 'box'}], function(otherEntity) {
+utils.triggers.addTrigger(box, utils.NO_LAYERS, utils.LAYER_1, [{type: 'box'}], function(otherEntity) {
   console.log(`triggered by ${otherEntity}!`)
   Transform.getMutable(box).position = {
     x: 1 + Math.random() * 14,
@@ -566,7 +566,7 @@ const triggerEntity = engine.addEntity()
 Transform.create(triggerEntity)
 
 utils.triggers.oneTimeTrigger(
-  triggerEntity, 1, 1,
+  triggerEntity, utils.NO_LAYERS, utils.LAYER_1,
   [{type: 'box', position: {x: 4, y: 1, z: 4}, scale: {x: 8, y: 1, z: 8}}],
   function(otherEntity) {
     console.log('Welcome!')
@@ -576,7 +576,7 @@ utils.triggers.oneTimeTrigger(
 
 ### Trigger layers
 
-You can define different layers (bitwise) for triggers, and set which other layers can trigger it.
+You can define different layers for triggers, and set which other layers can trigger it.
 
 The following example creates a scene that has:
 
@@ -595,9 +595,9 @@ import * as utils from '@dcl-sdk/utils'
 import { Color4 } from "@dcl/sdk/math"
 
 // Define layers
-const FOOD_LAYER = 1
-const MOUSE_LAYER = (1 << 1)
-const CAT_LAYER = (1 << 2)
+const FOOD_LAYER = utils.LAYER_1
+const MOUSE_LAYER = utils.LAYER_2
+const CAT_LAYER = utils.LAYER_3
 
 // Remove default trigger from a player so that they don't interfere
 utils.triggers.removeTrigger(engine.PlayerEntity)

@@ -3,6 +3,17 @@ import { Vector3, Color4, Color3 } from '@dcl/sdk/math'
 import { getWorldPosition, getWorldRotation, areAABBIntersecting, areAABBSphereIntersecting, areSpheresIntersecting } from './math'
 import { priority } from './priority'
 
+export const LAYER_1 = 1
+export const LAYER_2 = 2
+export const LAYER_3 = 4
+export const LAYER_4 = 8
+export const LAYER_5 = 16
+export const LAYER_6 = 32
+export const LAYER_7 = 64
+export const LAYER_8 = 128
+export const ALL_LAYERS = 255
+export const NO_LAYERS = 0
+
 export type TriggerBoxAreaSpec = {
   type: 'box',
   position?: Vector3,
@@ -176,7 +187,7 @@ function createTriggers(targetEngine: IEngine) {
       if (!otherTrigger.active)
         continue
       
-      if (trigger.triggeredByMask != 0 && !(trigger.triggeredByMask & otherTrigger.layerMask))
+      if (!(trigger.triggeredByMask & otherTrigger.layerMask))
         continue
       
       const intersecting = areTriggersIntersecting(shapeWorldPos.get(entity)!, trigger, shapeWorldPos.get(otherEntity)!, otherTrigger)
@@ -264,20 +275,26 @@ function createTriggers(targetEngine: IEngine) {
   const triggersInterface = {
     addTrigger(
       entity: Entity,
-      layerMask: number,
-      triggeredByMask: number,
+      layerMask: number = NO_LAYERS,
+      triggeredByMask: number = NO_LAYERS,
       areas?: Array<TriggerAreaSpec>,
       onEnterCallback?: OnTriggerEnterCallback,
       onExitCallback?: OnTriggerExitCallback,
       debugColor?: Color3
     ) {
+      if (layerMask < 0 || layerMask > ALL_LAYERS || !Number.isInteger(layerMask))
+        throw new Error(`Bad layerMask: ${layerMask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
+
+      if (triggeredByMask < 0 || triggeredByMask > ALL_LAYERS || !Number.isInteger(triggeredByMask))
+        throw new Error(`Bad triggeredByMask: ${triggeredByMask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
+
+      if (!areas)
+        areas = [{type: 'box'}]
+
       debugEntities.set(entity, [])
       activeCollisions.set(entity, new Set())
       triggerEnterCbs.set(entity, onEnterCallback)
       triggerExitCbs.set(entity, onExitCallback)
-
-      if (!areas)
-        areas = [{type: 'box'}]
 
       const boxAreas = []
       const sphereAreas = []
@@ -339,8 +356,8 @@ function createTriggers(targetEngine: IEngine) {
     },
     oneTimeTrigger(
       entity: Entity,
-      layerMask: number,
-      triggeredByMask: number,
+      layerMask: number = NO_LAYERS,
+      triggeredByMask: number = NO_LAYERS,
       areas?: Array<TriggerAreaSpec>,
       onEnterCallback?: OnTriggerEnterCallback,
       debugColor?: Color3
@@ -361,12 +378,16 @@ function createTriggers(targetEngine: IEngine) {
       return Trigger.get(entity).layerMask
     },
     setLayerMask(entity: Entity, mask: number) {
+      if (mask < 0 || mask > ALL_LAYERS || !Number.isInteger(mask))
+        throw new Error(`Bad layerMask: ${mask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
       Trigger.getMutable(entity).layerMask = mask
     },
     getTriggeredByMask(entity: Entity) {
       return Trigger.get(entity).triggeredByMask
     },
     setTriggeredByMask(entity: Entity, mask: number) {
+      if (mask < 0 || mask > ALL_LAYERS || !Number.isInteger(mask))
+        throw new Error(`Bad layerMask: ${mask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
       Trigger.getMutable(entity).triggeredByMask = mask
     },
     getBoxAreas(entity: Entity) {
@@ -397,7 +418,7 @@ function createTriggers(targetEngine: IEngine) {
   }
 
   triggersInterface.addTrigger(
-    targetEngine.PlayerEntity, 1, 1,
+    targetEngine.PlayerEntity, LAYER_1, NO_LAYERS,
     [{
       type: 'box',
       scale: {x: 0.65, y: 1.92, z: 0.65},
