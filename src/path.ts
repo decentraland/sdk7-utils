@@ -11,10 +11,12 @@ export type OnPointReachedCallback = (pointIndex: number, point: Vector3, nextPo
 function createPaths(targetEngine: IEngine) {
   const FollowPath = targetEngine.defineComponent('dcl.utils.FollowPath', {
     points: Schemas.Array(Schemas.Vector3),
-    speed: Schemas.Array(Schemas.Number),
     faceDirection: Schemas.Boolean,
+    speed: Schemas.Number,
     normalizedTime: Schemas.Number,
-    currentIndex: Schemas.Number
+    currentIndex: Schemas.Number,
+    segmentTimes: Schemas.Array(Schemas.Number),
+    curveSegmentCount: Schemas.Number
   })
 
   type FinishCallbackMap = Map<Entity, OnFinishCallback | undefined>
@@ -34,37 +36,43 @@ function createPaths(targetEngine: IEngine) {
         continue
       }
 
-      const path = FollowPath.getMutable(entity)
-      path.normalizedTime = Scalar.clamp(path.normalizedTime + dt * path.speed[path.currentIndex], 0, 1)
       const transform = Transform.getMutable(entity)
-      transform.position = Vector3.lerp(
-        path.points[path.currentIndex],
-        path.points[path.currentIndex + 1],
-        path.normalizedTime
-      )
-      
-      if (path.normalizedTime >= 1) {
-        if (path.currentIndex < path.points.length - 2) {
+      const path = FollowPath.getMutable(entity)
+      path.normalizedTime = Scalar.clamp(path.normalizedTime + dt * path.speed, 0, 1)
+
+      while (path.normalizedTime >= path.segmentTimes[path.currentIndex]) {
+        if (path.currentIndex < path.points.length - 1) {
           if (path.faceDirection) {
-            const direction = Vector3.subtract(path.points[path.currentIndex + 2], path.points[path.currentIndex + 1])
+            const direction = Vector3.subtract(path.points[path.currentIndex + 1], path.points[path.currentIndex])
             transform.rotation = Quaternion.lookRotation(direction)
           }
-          path.currentIndex++
-          path.normalizedTime = 0
-          if (path.currentIndex < path.points.length - 1) {
-            pointReachedPaths.push(entity)
+          if (path.currentIndex > 0 && path.currentIndex % path.curveSegmentCount == 0) {
+            const pointIndex = path.currentIndex / path.curveSegmentCount
+            const pointCoords = path.points[path.currentIndex]
+            const nextPointCoords = path.points[path.currentIndex + path.curveSegmentCount]
+            pointReachedPaths.push({entity: entity, index: pointIndex, coords: pointCoords, nextCoords: nextPointCoords})
           }
         } else {
           deadPaths.push(entity)
+          break
         }
+        path.currentIndex += 1
       }
+
+      const timeDiff = path.segmentTimes[path.currentIndex] - path.segmentTimes[path.currentIndex - 1]
+      const interpolationCoef = (path.segmentTimes[path.currentIndex] - path.normalizedTime) / timeDiff
+
+      transform.position = Vector3.lerp(
+        path.points[path.currentIndex],
+        path.points[path.currentIndex - 1],
+        interpolationCoef
+      )
     }
 
-    for (const entity of pointReachedPaths) {
-      const callback = pointReachedCbs.get(entity)
+    for (const pointReached of pointReachedPaths) {
+      const callback = pointReachedCbs.get(pointReached.entity)
       if (callback) {
-        const path = FollowPath.get(entity)
-        callback(path.currentIndex, path.points[path.currentIndex], path.points[path.currentIndex + 1])
+        callback(pointReached.index, pointReached.coords, pointReached.nextCoords)
       }
     }
 
@@ -84,7 +92,7 @@ function createPaths(targetEngine: IEngine) {
     points: Vector3[],
     duration: number,
     faceDirection?: boolean,
-    curveSegmentNumber?: number,
+    curveSegmentCount?: number,
     loop?: boolean,
     onFinishCallback?: OnFinishCallback,
     onPointReachedCallback?: OnPointReachedCallback
@@ -95,16 +103,17 @@ function createPaths(targetEngine: IEngine) {
     if (duration == 0)
       throw new Error('Path duration must not be zero')
 
-    if (curveSegmentNumber) {
+    if (curveSegmentCount) {
       if (loop)
         points.unshift(points.pop()!)
 
       points = createCatmullRomSpline(
         points,
-        curveSegmentNumber,
+        curveSegmentCount,
         loop ? true : false
       )
     } else {
+      curveSegmentCount = 1
       if (loop)
         points.push(points[0])
     }
@@ -112,30 +121,28 @@ function createPaths(targetEngine: IEngine) {
     finishCbs.set(entity, onFinishCallback)
     pointReachedCbs.set(entity, onPointReachedCallback)
 
-    const speeds = []
-    let totalDist = 0
-    const pointsDist = []
+    let totalLength = 0
+    const segmentLengths = []
     for (let i = 0; i < points.length - 1; i++) {
       let sqDist = Vector3.distance(points[i], points[i + 1])
-      totalDist += sqDist
-      pointsDist.push(sqDist)
+      totalLength += sqDist
+      segmentLengths.push(sqDist)
     }
-    for (let i = 0; i < pointsDist.length; i++) {
-      speeds.push(1 / ((pointsDist[i] / totalDist) * duration))
+
+    const segmentTimes = [0]
+    for (let i = 0; i < segmentLengths.length; i++) {
+      segmentTimes.push(segmentLengths[i] / totalLength + segmentTimes[i])
     }
 
     FollowPath.createOrReplace(entity, {
       points: points,
-      speed: speeds,
+      segmentTimes: segmentTimes,
+      curveSegmentCount: curveSegmentCount,
+      speed: 1 / duration,
       normalizedTime: 0,
       currentIndex: 0,
       faceDirection: faceDirection
     })
-
-    if (faceDirection) {
-      const direction = Vector3.subtract(points[1], points[0])
-      Transform.getMutable(entity).rotation = Quaternion.lookRotation(direction)
-    }
   }
 
   return {
@@ -157,9 +164,10 @@ function createPaths(targetEngine: IEngine) {
       segmentCount: number,
       loop?: boolean,
       faceDirection?: boolean,
-      onFinishCallback?: OnFinishCallback
+      onFinishCallback?: OnFinishCallback,
+      onPointReachedCallback?: OnPointReachedCallback
     ) {
-      return startPath(entity, points, duration, faceDirection, segmentCount, loop, onFinishCallback)
+      return startPath(entity, points, duration, faceDirection, segmentCount, loop, onFinishCallback, onPointReachedCallback)
     },
     stopPath(entity: Entity) {
       const callback = finishCbs.get(entity)

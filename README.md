@@ -324,7 +324,7 @@ utils.paths.startSmoothPath(box, path, 10, 20)
 
 Just like tweens, paths can be stopped: use `utils.paths.stopPath` for that purpose. Again, like tweens, path starting functions accept optional `onFinishCallback` argument which is executed after a path finishes or is explicitly stopped.
 
-Straight paths also accept optional `onPointReachedCallback` argument which is executed when a path reaches one of its milestones (`points`).
+Paths also accept optional `onPointReachedCallback` argument which is executed when a path reaches one of its milestones (`points`).
 
 The following example logs a messages when the box finishes each segment of the path, and another when the entire path is done.
 
