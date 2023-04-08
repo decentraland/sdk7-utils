@@ -39,34 +39,29 @@ function createPaths(targetEngine: IEngine) {
       const transform = Transform.getMutable(entity)
       const path = FollowPath.getMutable(entity)
       path.normalizedTime = Scalar.clamp(path.normalizedTime + dt * path.speed, 0, 1)
+      if (path.normalizedTime >= 1)
+        deadPaths.push(entity)
 
-      while (path.normalizedTime >= path.segmentTimes[path.currentIndex]) {
-        if (path.currentIndex < path.points.length - 1) {
-          if (path.faceDirection) {
-            const direction = Vector3.subtract(path.points[path.currentIndex + 1], path.points[path.currentIndex])
-            transform.rotation = Quaternion.lookRotation(direction)
-          }
-          if (path.currentIndex > 0 && path.currentIndex % path.curveSegmentCount == 0) {
-            const pointIndex = path.currentIndex / path.curveSegmentCount
-            const pointCoords = path.points[path.currentIndex]
-            const nextPointCoords = path.points[path.currentIndex + path.curveSegmentCount]
-            pointReachedPaths.push({entity: entity, index: pointIndex, coords: pointCoords, nextCoords: nextPointCoords})
-          }
-        } else {
-          deadPaths.push(entity)
-          break
+      while (
+        path.normalizedTime >= path.segmentTimes[path.currentIndex] &&
+        path.currentIndex < path.points.length - 1
+      ) {
+        if (path.faceDirection) {
+          const direction = Vector3.subtract(path.points[path.currentIndex + 1], path.points[path.currentIndex])
+          transform.rotation = Quaternion.lookRotation(direction)
+        }
+        if (path.currentIndex > 0 && path.currentIndex % path.curveSegmentCount == 0) {
+          const pointIndex = path.currentIndex / path.curveSegmentCount
+          const pointCoords = path.points[path.currentIndex]
+          const nextPointCoords = path.points[path.currentIndex + path.curveSegmentCount]
+          pointReachedPaths.push({entity: entity, index: pointIndex, coords: pointCoords, nextCoords: nextPointCoords})
         }
         path.currentIndex += 1
       }
 
       const timeDiff = path.segmentTimes[path.currentIndex] - path.segmentTimes[path.currentIndex - 1]
-      const interpolationCoef = (path.segmentTimes[path.currentIndex] - path.normalizedTime) / timeDiff
-
-      transform.position = Vector3.lerp(
-        path.points[path.currentIndex],
-        path.points[path.currentIndex - 1],
-        interpolationCoef
-      )
+      const coef = (path.segmentTimes[path.currentIndex] - path.normalizedTime) / timeDiff
+      transform.position = Vector3.lerp(path.points[path.currentIndex], path.points[path.currentIndex - 1], coef)
     }
 
     for (const pointReached of pointReachedPaths) {
@@ -102,12 +97,13 @@ function createPaths(targetEngine: IEngine) {
     if (duration == 0)
       throw new Error('Path duration must not be zero')
 
-    const loop = Vector3.equals(points[0], points[1])
+    const loop = Vector3.equals(points[0], points[points.length - 1])
 
     if (curveSegmentCount) {
-      if (loop)
-        points.shift()
-
+      if (loop) {
+        points.pop()
+        points.unshift(points.pop()!)
+      }
       points = createCatmullRomSpline(points, curveSegmentCount, loop)
     } else {
       curveSegmentCount = 1
