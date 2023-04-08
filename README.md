@@ -269,9 +269,8 @@ To move an entity over several points of a path over a period of time, use `util
 - `points`: An array of `Vector3` positions that form the path.
 - `duration`: The duration (in seconds) of the whole path.
 
-There are two optional arguments:
+There is one optional argument:
 
-- `loop`: When set to true, path becomes closed, after reaching a final point, an entity will proceed to the first one.
 - `faceDirection`: When set to true, an entity will be rotated to face the direction of its movement.
 
 This example moves an entity through four points over 10 seconds:
@@ -295,9 +294,7 @@ utils.paths.startStraightPath(box, path, 10)
 
 ### Smooth path
 
-To make an entity follow a smooth path over a period of time, use `utils.paths.startSmoothPath`. The smooth path is composed of multiple straight line segments put together. You only need to supply a series of fixed path points and a smooth curve is drawn to pass through all of these. You must specify an amount of segments via `segmentCount` argument.
-
-> Tip: Each segment takes at least one frame to complete. Avoid using more than 30 segments per second in the duration of the path, or the entity will move significantly slower while it stops for each segment.
+To make an entity follow a smooth path over a period of time, use `utils.paths.startSmoothPath`. The smooth path is composed of multiple straight line segments put together. You only need to supply a series of fixed path points and a smooth curve is drawn to pass through all of these. You must specify an amount of segments via `segmentCount` argument. `faceDirection` argument works for smooth paths too.
 
 This example makes entity follow a smooth path that's subdivided into 20 segments, over a period of 10 seconds. The curve passes through four key points.
 
@@ -317,8 +314,6 @@ let path = [
 
 utils.paths.startSmoothPath(box, path, 10, 20)
 ```
-
-`loop` and `faceDirection` arguments work for smooth paths too.
 
 ### Stopping paths and callbacks
 
@@ -343,7 +338,7 @@ let path = [
 ]
 
 utils.paths.startStraightPath(
-  box, path, 10, false, false,
+  box, path, 10, false,
   function() {
     console.log('Path is complete')
   },

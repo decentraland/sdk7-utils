@@ -93,7 +93,6 @@ function createPaths(targetEngine: IEngine) {
     duration: number,
     faceDirection?: boolean,
     curveSegmentCount?: number,
-    loop?: boolean,
     onFinishCallback?: OnFinishCallback,
     onPointReachedCallback?: OnPointReachedCallback
   ) {
@@ -103,19 +102,15 @@ function createPaths(targetEngine: IEngine) {
     if (duration == 0)
       throw new Error('Path duration must not be zero')
 
+    const loop = Vector3.equals(points[0], points[1])
+
     if (curveSegmentCount) {
       if (loop)
-        points.unshift(points.pop()!)
+        points.shift()
 
-      points = createCatmullRomSpline(
-        points,
-        curveSegmentCount,
-        loop ? true : false
-      )
+      points = createCatmullRomSpline(points, curveSegmentCount, loop)
     } else {
       curveSegmentCount = 1
-      if (loop)
-        points.push(points[0])
     }
 
     finishCbs.set(entity, onFinishCallback)
@@ -150,24 +145,24 @@ function createPaths(targetEngine: IEngine) {
       entity: Entity,
       points: Vector3[],
       duration: number,
-      loop?: boolean,
       faceDirection?: boolean,
       onFinishCallback?: OnFinishCallback,
       onPointReachedCallback?: OnPointReachedCallback
     ) {
-      return startPath(entity, points, duration, faceDirection, 0, loop, onFinishCallback, onPointReachedCallback)
+      return startPath(entity, points, duration, faceDirection, 0, onFinishCallback, onPointReachedCallback)
     },
     startSmoothPath(
       entity: Entity,
       points: Vector3[],
       duration: number,
       segmentCount: number,
-      loop?: boolean,
       faceDirection?: boolean,
       onFinishCallback?: OnFinishCallback,
       onPointReachedCallback?: OnPointReachedCallback
     ) {
-      return startPath(entity, points, duration, faceDirection, segmentCount, loop, onFinishCallback, onPointReachedCallback)
+      if (segmentCount < 2 || !Number.isInteger(segmentCount))
+        throw new Error(`segmentCount must be an integer that is greater than 2, got: ${segmentCount}`)
+      return startPath(entity, points, duration, faceDirection, segmentCount, onFinishCallback, onPointReachedCallback)
     },
     stopPath(entity: Entity) {
       const callback = finishCbs.get(entity)
