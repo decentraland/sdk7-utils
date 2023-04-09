@@ -315,6 +315,45 @@ let path = [
 utils.paths.startSmoothPath(box, path, 10, 20)
 ```
 
+If the first and last points of a smooth path are identical, the library tries to facilitate smooth orientation change during movement over a loop. In the example below a box loops through three points forever.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+import { Color4 } from '@dcl/sdk/math'
+
+// Path points
+const p0 = {x: 2, y: 1, z: 2}
+const p1 = {x: 8, y: 1, z: 2}
+const p2 = {x: 8, y: 1, z: 6}
+
+// Path points' markers
+utils.addTestCube({position: p0}, undefined, undefined, Color4.Red(), false, true)
+utils.addTestCube({position: p1}, undefined, undefined, Color4.Green(), false, true)
+utils.addTestCube({position: p2}, undefined, undefined, Color4.Blue(), false, true)
+
+const box = utils.addTestCube(
+  {position: p0, scale: {x: 1, y: 1, z: 2}},
+  undefined, undefined, Color4.Yellow(), false, true
+)
+
+function startPath() {
+  utils.paths.startSmoothPath(
+    // Set the last point of the path to be identical to the first one to achieve looping
+    box,
+    [p0, p1, p2, p0],
+    5,
+    50,
+    // Set faceDirection to true to align box's rotation with its movement's direction
+    true,
+    // When path is complete, start it again
+    function() { startPath() }
+  )
+}
+
+startPath()
+```
+
 ### Stopping paths and callbacks
 
 Just like tweens, paths can be stopped: use `utils.paths.stopPath` for that purpose. Again, like tweens, path starting functions accept optional `onFinishCallback` argument which is executed after a path finishes or is explicitly stopped.
