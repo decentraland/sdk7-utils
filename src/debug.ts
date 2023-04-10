@@ -44,7 +44,7 @@ export function addLabel(
 }
 
 /**
- * Creates a cube that can run functions when clicked. By default only displayed when in preview mode for tests.
+ * Creates a cube that can run functions when clicked.
  *
  * @param transform - Transform arguments for the cube, including position, scale and rotation
  * @param triggeredFunction - Function to execute every time the cube is clicked.
