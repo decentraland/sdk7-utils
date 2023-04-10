@@ -1,6 +1,6 @@
 {
   "name": "@dcl-sdk/utils",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "A collection of helpers to make it easier to build a Decentraland scene using the SDK 7.",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/decentraland/sdk7-utils.git"
   },
-  "keywords": ["Decentraland", "sdk7", "sdk 7", "sdk utils", "sdk library"],
+  "keywords": ["decentraland", "sdk7", "sdk 7", "sdk utils", "sdk library"],
   "author": "Decentraland",
   "license": "Apache-2.0",
   "bugs": {
