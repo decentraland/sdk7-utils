@@ -1,6 +1,6 @@
 {
   "name": "@dcl-sdk/utils",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A collection of helpers to make it easier to build a Decentraland scene using the SDK 7.",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
