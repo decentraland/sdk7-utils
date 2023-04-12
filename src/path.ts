@@ -25,14 +25,19 @@ function createPaths(targetEngine: IEngine) {
   const finishCbs: FinishCallbackMap = new Map()
   const pointReachedCbs: OnPointReachedCallbackMap = new Map()
 
+  function unregisterEntity(entity: Entity) {
+    finishCbs.delete(entity)
+    pointReachedCbs.delete(entity)
+    FollowPath.deleteFrom(entity)
+  }
+
   function system(dt: number) {
     const deadPaths = []
     const pointReachedPaths = []
 
     for (const entity of finishCbs.keys()) {
       if (targetEngine.getEntityState(entity) == EntityState.Removed || !FollowPath.has(entity)) {
-        finishCbs.delete(entity)
-        pointReachedCbs.delete(entity)
+        unregisterEntity(entity)
         continue
       }
 
@@ -73,8 +78,7 @@ function createPaths(targetEngine: IEngine) {
 
     for (const entity of deadPaths) {
       const callback = finishCbs.get(entity)
-      finishCbs.delete(entity)
-      FollowPath.deleteFrom(entity)
+      unregisterEntity(entity)
       if (callback)
         callback()
     }
@@ -97,9 +101,8 @@ function createPaths(targetEngine: IEngine) {
     if (duration == 0)
       throw new Error('Path duration must not be zero')
 
-    const loop = Vector3.equals(points[0], points[points.length - 1])
-
     if (curveSegmentCount) {
+      const loop = Vector3.equals(points[0], points[points.length - 1])
       if (loop) {
         points.pop()
         points.unshift(points.pop()!)
@@ -162,9 +165,7 @@ function createPaths(targetEngine: IEngine) {
     },
     stopPath(entity: Entity) {
       const callback = finishCbs.get(entity)
-      finishCbs.delete(entity)
-      pointReachedCbs.delete(entity)
-      FollowPath.deleteFrom(entity)
+      unregisterEntity(entity)
       if (callback)
         callback()
     }
