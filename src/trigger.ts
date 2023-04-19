@@ -19,24 +19,22 @@ export type TriggerBoxAreaSpec = {
   position?: Vector3,
   scale?: Vector3
 }
-
 export type TriggerSphereAreaSpec = {
   type: 'sphere',
   position?: Vector3,
   radius?: number
 }
-
 export type TriggerAreaSpec = TriggerBoxAreaSpec | TriggerSphereAreaSpec
 
 export type TriggerBoxArea = {
   position: Vector3,
   size: Vector3
 }
-
 export type TriggerSphereArea = {
   position: Vector3,
   radius: number
 }
+export type TriggerArea = {$case: 'box', value: TriggerBoxArea} | {$case: 'sphere', value: TriggerSphereArea}
 
 type OnTriggerEnterCallback = (entity: Entity) => void
 type OnTriggerExitCallback = (entity: Entity) => void
@@ -48,13 +46,15 @@ function createTriggers(targetEngine: IEngine) {
     active: Schemas.Boolean,
     layerMask: Schemas.Int,
     triggeredByMask: Schemas.Int,
-    boxAreas: Schemas.Array(Schemas.Map({
-      position: Schemas.Vector3,
-      size: Schemas.Vector3
-    })),
-    sphereAreas: Schemas.Array(Schemas.Map({
-      position: Schemas.Vector3,
-      radius: Schemas.Number
+    areas: Schemas.Array(Schemas.OneOf({
+      box: Schemas.Map({
+        position: Schemas.Vector3,
+        size: Schemas.Vector3
+      }),
+      sphere: Schemas.Map({
+        position: Schemas.Vector3,
+        radius: Schemas.Number
+      })
     })),
     debugColor: Schemas.Color3
   })
@@ -63,8 +63,7 @@ function createTriggers(targetEngine: IEngine) {
     active: boolean,
     layerMask: number,
     triggeredByMask: number,
-    boxAreas: Array<TriggerBoxArea>,
-    sphereAreas: Array<TriggerSphereArea>,
+    areas: Array<TriggerArea>,
     debugColor: Color3
   }
 
@@ -75,8 +74,6 @@ function createTriggers(targetEngine: IEngine) {
   const activeCollisions: Map<Entity, Set<Entity>> = new Map()
   const debugEntities: Map<Entity, Array<Entity>> = new Map()
 
-  type ShapeWorldPositions = {"box": Array<Vector3>, "sphere": Array<Vector3>}
-
   function updateDebugDraw(enabled: boolean) {
     if (!enabled)
       return
@@ -84,96 +81,99 @@ function createTriggers(targetEngine: IEngine) {
     for (const [entity, trigger] of targetEngine.getEntitiesWith(Trigger, Transform)) {
       let shapes = debugEntities.get(entity)!
 
-      const boxCount = trigger.boxAreas.length
-      const sphereCount = trigger.sphereAreas.length
-      while (shapes.length > boxCount + sphereCount) {
+      const areaCount = trigger.areas.length
+      while (shapes.length > areaCount) {
         targetEngine.removeEntity(shapes.pop()!)
       }
-      while(shapes.length < boxCount + sphereCount) {
+      while(shapes.length < areaCount) {
         shapes.push(targetEngine.addEntity())
       }
 
       const worldPosition = getWorldPosition(entity)
       const worldRotation = getWorldRotation(entity)
 
-      for (let i = 0; i < boxCount; ++i) {
-        const shapeSpec = trigger.boxAreas[i]
+      for (let i = 0; i < areaCount; ++i) {
+        const shapeSpec = trigger.areas[i]
         const shape = shapes[i]
+
+        let scale
+        if (shapeSpec.$case == 'box') {
+          scale = shapeSpec.value.size
+          MeshRenderer.setBox(shape)
+        } else {
+          const radius = shapeSpec.value.radius
+          scale = {x: radius, y: radius, z: radius}
+          MeshRenderer.setSphere(shape)
+        }
+
         Transform.createOrReplace(shape, {
-          position: Vector3.add(worldPosition, Vector3.rotate(shapeSpec.position, worldRotation)),
-          scale: shapeSpec.size
+          position: Vector3.add(worldPosition, Vector3.rotate(shapeSpec.value.position, worldRotation)),
+          scale: scale
         })
-        MeshRenderer.setBox(shape)
+
         const color = trigger.active ? trigger.debugColor : Color3.Black()
         Material.setPbrMaterial(shape, {albedoColor: Color4.fromInts(255 * color.r, 255 * color.g, 255 *color.b, 75)})
-      }
-
-      for (let i = 0; i < sphereCount; ++i) {
-        const shapeSpec = trigger.sphereAreas[i]
-        const shape = shapes[boxCount + i]
-        Transform.createOrReplace(shape, {
-          position: Vector3.add(worldPosition, Vector3.rotate(shapeSpec.position, worldRotation)),
-          scale: {x: shapeSpec.radius, y: shapeSpec.radius, z: shapeSpec.radius}
-        })
-        MeshRenderer.setSphere(shape)
-        const color = trigger.active ? trigger.debugColor : Color3.Black()
-        Material.setPbrMaterial(shape, {albedoColor: Color4.fromInts(255 * color.r, 255 * color.g, 255 * color.b, 75)})
       }
     }
   }
 
   function areTriggersIntersecting(
-    shapeWorldPos0: ShapeWorldPositions,
+    shapeWorldPos0: Array<Vector3>,
     t0: DeepReadonly<TriggerType>,
-    shapeWorldPos1: ShapeWorldPositions,
+    shapeWorldPos1: Array<Vector3>,
     t1: DeepReadonly<TriggerType>
   ): boolean {
-    for (let i = 0; i < t0.boxAreas.length; ++i) {
-      const t0Box = t0.boxAreas[i]
-      const t0World = shapeWorldPos0.box[i]
-      const t0Min = Vector3.subtract(t0World, Vector3.scale(t0Box.size, 0.5))
-      const t0Max = Vector3.add(t0Min, t0Box.size)
+    for (let i = 0; i < t0.areas.length; ++i) {
+      const t0World = shapeWorldPos0[i]
+      const t0Area = t0.areas[i]
 
-      for (let j = 0; j < t1.boxAreas.length; ++j) {
-        const t1Box = t1.boxAreas[j]
-        const t1World = shapeWorldPos1.box[j]
-        const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.size, 0.5))
-        const t1Max = Vector3.add(t1Min, t1Box.size)
+      if (t0Area.$case == 'box') {
+        const t0Box = t0Area.value
+        const t0Min = Vector3.subtract(t0World, Vector3.scale(t0Box.size, 0.5))
+        const t0Max = Vector3.add(t0Min, t0Box.size)
 
-        if (areAABBIntersecting(t0Min, t0Max, t1Min, t1Max))
-          return true
-      }
+        for (let j = 0; j < t1.areas.length; ++j) {
+          const t1World = shapeWorldPos1[j]
+          const t1Area = t1.areas[j]
 
-      for (let j = 0; j < t1.sphereAreas.length; ++j) {
-        if (areAABBSphereIntersecting(t0Min, t0Max, shapeWorldPos1.sphere[j], t1.sphereAreas[j].radius))
-          return true
-      }
-    }
+          if (t1Area.$case == 'box') {
+            const t1Box = t1Area.value
+            const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.size, 0.5))
+            const t1Max = Vector3.add(t1Min, t1Box.size)
 
-    for (let i = 0; i < t0.sphereAreas.length; ++i) {
-      const t0World = shapeWorldPos0.sphere[i]
-      const t0Radius = t0.sphereAreas[i].radius
+            if (areAABBIntersecting(t0Min, t0Max, t1Min, t1Max))
+              return true
+          } else {
+            if (areAABBSphereIntersecting(t0Min, t0Max, t1World, t1Area.value.radius))
+              return true
+          }
+        }
+      } else {
+        const t0Radius = t0Area.value.radius
 
-      for (let j = 0; j < t1.boxAreas.length; ++j) {
-        const t1Box = t1.boxAreas[j]
-        const t1World = shapeWorldPos1.box[j]
-        const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.size, 0.5))
-        const t1Max = Vector3.add(t1Min, t1Box.size)
+        for (let j = 0; j < t1.areas.length; ++j) {
+          const t1World = shapeWorldPos1[j]
+          const t1Area = t1.areas[j]
 
-        if (areAABBSphereIntersecting(t1Min, t1Max, t0World, t0Radius))
-          return true
-      }
+          if (t1Area.$case == 'box') {
+            const t1Box = t1Area.value
+            const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.size, 0.5))
+            const t1Max = Vector3.add(t1Min, t1Box.size)
 
-      for (let j = 0; j < t1.sphereAreas.length; ++j) {
-        if (areSpheresIntersecting(t0World, t0Radius, shapeWorldPos1.sphere[j], t1.sphereAreas[j].radius))
-          return true
+            if (areAABBSphereIntersecting(t1Min, t1Max, t0World, t0Radius))
+              return true
+          } else {
+            if (areSpheresIntersecting(t0World, t0Radius, t1World, t1Area.value.radius))
+              return true
+          }
+        }
       }
     }
 
     return false
   }
 
-  function computeCollisions(entity: Entity, shapeWorldPos: Map<Entity, ShapeWorldPositions>) {
+  function computeCollisions(entity: Entity, shapeWorldPos: Map<Entity, Array<Vector3>>) {
     let collisions: Set<Entity> = new Set()
     const trigger = Trigger.get(entity)
 
@@ -201,7 +201,7 @@ function createTriggers(targetEngine: IEngine) {
   function updateCollisions() {
     const collisionsStarted = []
     const collisionsEnded = []
-    const shapeWorldPositions: Map<Entity, ShapeWorldPositions> = new Map()
+    const shapeWorldPositions: Map<Entity, Array<Vector3>> = new Map()
 
     for (const entity of activeCollisions.keys()) {
       if (targetEngine.getEntityState(entity) == EntityState.Removed || !Trigger.has(entity)) {
@@ -220,19 +220,15 @@ function createTriggers(targetEngine: IEngine) {
         continue
       }
 
-      const boxPositions = []
-      const spherePositions = []
+      const positions = []
       const entityWorldPosition = getWorldPosition(entity)
       const entityWorldRotation = getWorldRotation(entity)
       const trigger = Trigger.get(entity)
 
-      for (const shape of trigger.boxAreas) {
-        boxPositions.push(Vector3.add(entityWorldPosition, Vector3.rotate(shape.position, entityWorldRotation)))
+      for (const shape of trigger.areas) {
+        positions.push(Vector3.add(entityWorldPosition, Vector3.rotate(shape.value.position, entityWorldRotation)))
       }
-      for (const shape of trigger.sphereAreas) {
-        spherePositions.push(Vector3.add(entityWorldPosition, Vector3.rotate(shape.position, entityWorldRotation)))
-      }
-      shapeWorldPositions.set(entity, {box: boxPositions, sphere: spherePositions})
+      shapeWorldPositions.set(entity, positions)
     }
 
     for (const entity of activeCollisions.keys()) {
@@ -272,6 +268,34 @@ function createTriggers(targetEngine: IEngine) {
 
   targetEngine.addSystem(system, priority.TriggerSystemPriority)
 
+  function triggerAreasFromSpec(areas?: Array<TriggerAreaSpec>) {
+    if (!areas)
+      areas = [{type: 'box'}]
+
+    const triggerAreas: Array<TriggerArea> = []
+
+    for (const area of areas) {
+      if (area.type == 'box') {
+        triggerAreas.push({
+          $case: 'box',
+          value: {
+            position: area.position ? area.position : Vector3.Zero(),
+            size: area.scale ? area.scale : Vector3.One()
+          }
+        })
+      } else {
+        triggerAreas.push({
+          $case: 'sphere',
+          value: {
+            position: area.position ? area.position : Vector3.Zero(),
+            radius: area.radius ? area.radius : 1
+          }
+        })
+      }
+    }
+    return triggerAreas
+  }
+
   const triggersInterface = {
     addTrigger(
       entity: Entity,
@@ -288,37 +312,16 @@ function createTriggers(targetEngine: IEngine) {
       if (triggeredByMask < 0 || triggeredByMask > ALL_LAYERS || !Number.isInteger(triggeredByMask))
         throw new Error(`Bad triggeredByMask: ${triggeredByMask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
 
-      if (!areas)
-        areas = [{type: 'box'}]
-
       debugEntities.set(entity, [])
       activeCollisions.set(entity, new Set())
       triggerEnterCbs.set(entity, onEnterCallback)
       triggerExitCbs.set(entity, onExitCallback)
 
-      const boxAreas = []
-      const sphereAreas = []
-
-      for (const area of areas) {
-        if (area.type == 'box') {
-          boxAreas.push({
-            position: area.position ? area.position : Vector3.Zero(),
-            size: area.scale ? area.scale : Vector3.One()
-          })
-        } else {
-          sphereAreas.push({
-            position: area.position ? area.position : Vector3.Zero(),
-            radius: area.radius ? area.radius : 1
-          })
-        }
-      }
-
       Trigger.createOrReplace(entity, {
         active: true,
         layerMask: layerMask,
         triggeredByMask: triggeredByMask,
-        boxAreas: boxAreas,
-        sphereAreas: sphereAreas,
+        areas: triggerAreasFromSpec(areas),
         debugColor: debugColor ? debugColor : Color3.Red()
       })
     },
@@ -390,11 +393,11 @@ function createTriggers(targetEngine: IEngine) {
         throw new Error(`Bad layerMask: ${mask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
       Trigger.getMutable(entity).triggeredByMask = mask
     },
-    getBoxAreas(entity: Entity) {
-      return Trigger.getMutable(entity).boxAreas
+    getAreas(entity: Entity) {
+      return Trigger.get(entity).areas
     },
-    getSphereAreas(entity: Entity) {
-      return Trigger.getMutable(entity).sphereAreas
+    setAreas(entity: Entity, areas: Array<TriggerAreaSpec>) {
+      Trigger.getMutable(entity).areas = triggerAreasFromSpec(areas)
     },
     setOnEnterCallback(entity: Entity, callback: OnTriggerEnterCallback) {
       triggerEnterCbs.set(entity, callback)
