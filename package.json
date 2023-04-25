@@ -24,8 +24,5 @@
   },
   "files": [
     "dist"
-  ],
-  "peerDependencies": {
-    "@dcl/sdk": "^7.1.6"
-  }
+  ]
 }
