@@ -164,10 +164,12 @@ function createPaths(targetEngine: IEngine) {
       return startPath(entity, points, duration, faceDirection, segmentCount, onFinishCallback, onPointReachedCallback)
     },
     stopPath(entity: Entity) {
-      const callback = finishCbs.get(entity)
       unregisterEntity(entity)
-      if (callback)
-        callback()
+    },
+    getOnFinishCallback(entity: Entity) {
+      if (!finishCbs.has(entity))
+        throw new Error(`Entity ${entity} is not registered in triggers system`)
+      return finishCbs.get(entity)
     }
   }
 }
