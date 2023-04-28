@@ -57,8 +57,8 @@ function createTweens(targetEngine: IEngine) {
 
       for (const entity of deadTweens) {
         const callback = callbacks.get(entity)
-        callbacks.delete(entity)
         tweenType.deleteFrom(entity)
+        callbacks.delete(entity)
         if (callback)
           callback()
       }
@@ -92,6 +92,14 @@ function createTweens(targetEngine: IEngine) {
     }
   }
 
+  function makeGetOnFinishCallback(callbacks: FinishCallbackMap) {
+    return function (entity: Entity) {
+      if (!callbacks.has(entity))
+        throw new Error(`Entity ${entity} is not registered with tweens system`)
+      return callbacks.get(entity)
+    }
+  }
+
   targetEngine.addSystem(makeSystem(PositionTween, positionFinishCbs, function(transform, start, end, time) {
     transform.position = Vector3.lerp(start, end, time)
   }), priority.TweenSystemPriority)
@@ -109,6 +117,9 @@ function createTweens(targetEngine: IEngine) {
     stopRotation: makeStop(RotationTween, rotationFinishCbs),
     startScaling: makeStart<Vector3>(ScaleTween, scaleFinishCbs),
     stopScaling: makeStop(ScaleTween, scaleFinishCbs),
+    getTranslationOnFinishCallback: makeGetOnFinishCallback(positionFinishCbs),
+    getRotationOnFinishCallback: makeGetOnFinishCallback(rotationFinishCbs),
+    getScalingOnFinishCallback: makeGetOnFinishCallback(scaleFinishCbs)
   }
 }
 
