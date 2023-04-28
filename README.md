@@ -221,7 +221,7 @@ const sphere = utils.addTestCube(
 )
 ```
 
-All tweens accept an optional argument `onFinishCallback` which is executed when a tween is complete or when a tween is stopped explicitly via calls described above.
+All tweens accept an optional argument `onFinishCallback` which is executed when a tween is complete. It is not executed if a tween was explicitly stopped via stop methods. Use `utils.tweens.getTranslationOnFinishCallback`, `utils.tweens.getRotationOnFinishCallback` and `utils.tweens.getScalingOnFinishCallback` to obtain tween's callback and call it before stopping a tween, if required.
 
 The following example logs a message when the box finishes its movement.
 
@@ -356,7 +356,7 @@ startPath()
 
 ### Stopping paths and callbacks
 
-Just like tweens, paths can be stopped: use `utils.paths.stopPath` for that purpose. Again, like tweens, path starting functions accept optional `onFinishCallback` argument which is executed after a path finishes or is explicitly stopped.
+Just like tweens, paths can be stopped: use `utils.paths.stopPath` for that purpose. Again, like tweens, path starting functions accept optional `onFinishCallback` argument which is executed after a path finishes. If a path was explicitly stopped via `utils.paths.stopPath`, callback is not executed. Use `utils.paths.getOnFinishCallback` to obtain a callback and call it before stopping a path, if required.
 
 Paths also accept optional `onPointReachedCallback` argument which is executed when a path reaches one of its milestones (`points`).
 
