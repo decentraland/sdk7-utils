@@ -39,7 +39,27 @@ This library includes a number of helpful pre-built tools that offer simple solu
 
 ## Using the Utils library
 
-To use any of the helpers provided by the utils library
+To use any of the helpers provided by the utils library you must install it in your Decentrland project.
+
+### Via the Decentraland Editor
+
+
+Make sure you've [installed the Decentraland editor](https://docs.decentraland.org/creator/development-guide/sdk7/installation-guide/#the-decentraland-editor).
+
+1) Open your scene's folder using Visual Studio Code. 
+
+> **📔 Note**:  The Visual Studio window must be at the root folder of the scene project.
+
+2) Open the Decentraland Editor tab on Visual Studio. Note that the bottom section lists all of your project's currently installed dependencies.
+
+3) Click the `+` icon on the header of the **Dependencies** view.
+
+4) Visual Studio opens an input box at the top of the screen. Write `@dcl-sdk/utils` and hit enter. The dependency is then installed to your scene.
+
+5) Select `Yes` to indicate that this is a Decentraland library.
+
+
+### Via the CLI
 
 1. Install it as an `npm` package. Run this command in your scene's project folder:
 
