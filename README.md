@@ -56,15 +56,13 @@ Make sure you've [installed the Decentraland editor](https://docs.decentraland.o
 
 4) Visual Studio opens an input box at the top of the screen. Write `@dcl-sdk/utils` and hit enter. The dependency is then installed to your scene.
 
-5) Select `Yes` to indicate that this is a Decentraland library.
-
 
 ### Via the CLI
 
 1. Install it as an `npm` package. Run this command in your scene's project folder:
 
 ```
-npm install @dcl-sdk/utils -B
+npm install @dcl-sdk/utils
 ```
 
 2. Run `dcl start` or `dcl build` so the dependencies are correctly installed.
