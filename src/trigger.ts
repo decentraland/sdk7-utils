@@ -28,7 +28,7 @@ export type TriggerAreaSpec = TriggerBoxAreaSpec | TriggerSphereAreaSpec
 
 export type TriggerBoxArea = {
   position: Vector3,
-  size: Vector3
+  scale: Vector3
 }
 export type TriggerSphereArea = {
   position: Vector3,
@@ -49,7 +49,7 @@ function createTriggers(targetEngine: IEngine) {
     areas: Schemas.Array(Schemas.OneOf({
       box: Schemas.Map({
         position: Schemas.Vector3,
-        size: Schemas.Vector3
+        scale: Schemas.Vector3
       }),
       sphere: Schemas.Map({
         position: Schemas.Vector3,
@@ -98,7 +98,7 @@ function createTriggers(targetEngine: IEngine) {
 
         let scale
         if (shapeSpec.$case == 'box') {
-          scale = shapeSpec.value.size
+          scale = shapeSpec.value.scale
           MeshRenderer.setBox(shape)
         } else {
           const radius = shapeSpec.value.radius
@@ -129,8 +129,8 @@ function createTriggers(targetEngine: IEngine) {
 
       if (t0Area.$case == 'box') {
         const t0Box = t0Area.value
-        const t0Min = Vector3.subtract(t0World, Vector3.scale(t0Box.size, 0.5))
-        const t0Max = Vector3.add(t0Min, t0Box.size)
+        const t0Min = Vector3.subtract(t0World, Vector3.scale(t0Box.scale, 0.5))
+        const t0Max = Vector3.add(t0Min, t0Box.scale)
 
         for (let j = 0; j < t1.areas.length; ++j) {
           const t1World = shapeWorldPos1[j]
@@ -138,8 +138,8 @@ function createTriggers(targetEngine: IEngine) {
 
           if (t1Area.$case == 'box') {
             const t1Box = t1Area.value
-            const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.size, 0.5))
-            const t1Max = Vector3.add(t1Min, t1Box.size)
+            const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.scale, 0.5))
+            const t1Max = Vector3.add(t1Min, t1Box.scale)
 
             if (areAABBIntersecting(t0Min, t0Max, t1Min, t1Max))
               return true
@@ -157,8 +157,8 @@ function createTriggers(targetEngine: IEngine) {
 
           if (t1Area.$case == 'box') {
             const t1Box = t1Area.value
-            const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.size, 0.5))
-            const t1Max = Vector3.add(t1Min, t1Box.size)
+            const t1Min = Vector3.subtract(t1World, Vector3.scale(t1Box.scale, 0.5))
+            const t1Max = Vector3.add(t1Min, t1Box.scale)
 
             if (areAABBSphereIntersecting(t1Min, t1Max, t0World, t0Radius))
               return true
@@ -280,7 +280,7 @@ function createTriggers(targetEngine: IEngine) {
           $case: 'box',
           value: {
             position: area.position ? area.position : Vector3.Zero(),
-            size: area.scale ? area.scale : Vector3.One()
+            scale: area.scale ? area.scale : Vector3.One()
           }
         })
       } else {

@@ -50,6 +50,7 @@ export {
 
 export {
   Timers,
+  TimerId,
   timers
 } from './timer'
 
