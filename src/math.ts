@@ -32,7 +32,11 @@ export function remap(
  * @public
  */
 export function getWorldPosition(entity: Entity): Vector3 {
-  let transform = Transform.get(entity)
+  let transform = Transform.getOrNull(entity)
+
+  if (!transform)
+    return Vector3.Zero()
+
   let parent = transform.parent
 
   if (!parent) {
@@ -51,7 +55,11 @@ export function getWorldPosition(entity: Entity): Vector3 {
  * @public
  */
 export function getWorldRotation(entity: Entity): Quaternion {
-  let transform = Transform.get(entity)
+  let transform = Transform.getOrNull(entity)
+
+  if (!transform)
+    return Quaternion.Identity()
+
   let parent = transform.parent
 
   if (!parent) {
