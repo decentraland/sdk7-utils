@@ -56,6 +56,14 @@ Make sure you've [installed the Decentraland editor](https://docs.decentraland.o
 
 4) Visual Studio opens an input box at the top of the screen. Write `@dcl-sdk/utils` and hit enter. The dependency is then installed to your scene.
 
+5) Import the library into the scene's script. Add this line at the start of TypeScript files that require it:
+
+```ts
+import * as utils from '@dcl-sdk/utils'
+```
+
+6) In your TypeScript file, write `utils.` and let the suggestions of your IDE show the available helpers.
+
 
 ### Via the CLI
 
