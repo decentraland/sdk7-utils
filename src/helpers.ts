@@ -29,7 +29,7 @@ export function* getEntitiesWithParent(
 export function* getEntityParent(
 	child: Entity
 ) {
-	return Transform.getOrNull(entity)?.parent || engine.RootEntity
+	return Transform.getOrNull(child)?.parent || engine.RootEntity
 }
 
 
