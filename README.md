@@ -31,6 +31,11 @@ This library includes a number of helpful pre-built tools that offer simple solu
   - [Remap](#remap)
   - [World position](#world-position)
   - [World rotation](#world-rotation)
+- [Other helpers](#other-helpers)
+  - [Get entity parent](#get-entity-parent)
+  - [Get entities with parent](#get-entities-with-parent)
+  - [Get player position](#get-player-position)
+  - [Play sound](#play-sound)
 - [Action sequence](#action-sequence)
   - [IAction](#iaction)
   - [Sequence builder](#sequence-builder)
@@ -43,27 +48,25 @@ To use any of the helpers provided by the utils library you must install it in y
 
 ### Via the Decentraland Editor
 
-
 Make sure you've [installed the Decentraland editor](https://docs.decentraland.org/creator/development-guide/sdk7/installation-guide/#the-decentraland-editor).
 
-1) Open your scene's folder using Visual Studio Code. 
+1. Open your scene's folder using Visual Studio Code.
 
-> **📔 Note**:  The Visual Studio window must be at the root folder of the scene project.
+> **📔 Note**: The Visual Studio window must be at the root folder of the scene project.
 
-2) Open the Decentraland Editor tab on Visual Studio. Note that the bottom section lists all of your project's currently installed dependencies.
+2. Open the Decentraland Editor tab on Visual Studio. Note that the bottom section lists all of your project's currently installed dependencies.
 
-3) Click the `+` icon on the header of the **Dependencies** view.
+3. Click the `+` icon on the header of the **Dependencies** view.
 
-4) Visual Studio opens an input box at the top of the screen. Write `@dcl-sdk/utils` and hit enter. The dependency is then installed to your scene.
+4. Visual Studio opens an input box at the top of the screen. Write `@dcl-sdk/utils` and hit enter. The dependency is then installed to your scene.
 
-5) Import the library into the scene's script. Add this line at the start of TypeScript files that require it:
+5. Import the library into the scene's script. Add this line at the start of TypeScript files that require it:
 
 ```ts
 import * as utils from '@dcl-sdk/utils'
 ```
 
-6) In your TypeScript file, write `utils.` and let the suggestions of your IDE show the available helpers.
-
+6. In your TypeScript file, write `utils.` and let the suggestions of your IDE show the available helpers.
 
 ### Via the CLI
 
@@ -96,7 +99,7 @@ Add a text label floating over an entity using `utils.addLabel`. It has two requ
 export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 
-const cube = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+const cube = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 utils.addLabel('Random cube', cube)
 ```
 
@@ -120,10 +123,9 @@ Render a simple clickable cube to use as a trigger when debugging a scene with `
 export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 
-utils.addTestCube(
-  {position: {x: 2, y: 1, z: 2}},
-  (event) => { console.log('Cube clicked') }
-)
+utils.addTestCube({ position: { x: 2, y: 1, z: 2 } }, (event) => {
+  console.log('Cube clicked')
+})
 ```
 
 `utils.addTestCube` also lets you set the following:
@@ -217,7 +219,13 @@ import * as utils from '@dcl-sdk/utils'
 const box = utils.addTestCube()
 let startPos = Vector3.create(1, 1, 1)
 let endPos = Vector3.create(15, 1, 15)
-utils.tweens.startTranslation(box, startPos, endPos, 2, utils.InterpolationType.EASEINQUAD)
+utils.tweens.startTranslation(
+  box,
+  startPos,
+  endPos,
+  2,
+  utils.InterpolationType.EASEINQUAD
+)
 ```
 
 ### Stopping tweens and callbacks
@@ -232,18 +240,35 @@ import { Quaternion, Vector3, Color4 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
-utils.tweens.startTranslation(box, Vector3.create(1, 1, 1), Vector3.create(15, 1, 15), 10)
-utils.tweens.startRotation(box, Quaternion.fromEulerDegrees(0, 0, 0), Quaternion.fromEulerDegrees(0, 90, 0), 10)
-utils.tweens.startScaling(box, Vector3.create(1, 1, 1), Vector3.create(2, 2, 2), 10)
+utils.tweens.startTranslation(
+  box,
+  Vector3.create(1, 1, 1),
+  Vector3.create(15, 1, 15),
+  10
+)
+utils.tweens.startRotation(
+  box,
+  Quaternion.fromEulerDegrees(0, 0, 0),
+  Quaternion.fromEulerDegrees(0, 90, 0),
+  10
+)
+utils.tweens.startScaling(
+  box,
+  Vector3.create(1, 1, 1),
+  Vector3.create(2, 2, 2),
+  10
+)
 
 const sphere = utils.addTestCube(
-  {position: {x: 2, y: 1, z: 1}},
-  function(event) {
+  { position: { x: 2, y: 1, z: 1 } },
+  function (event) {
     utils.tweens.stopTranslation(box)
     utils.tweens.stopRotation(box)
     utils.tweens.stopScaling(box)
   },
-  undefined, Color4.Red(), true
+  undefined,
+  Color4.Red(),
+  true
 )
 ```
 
@@ -258,8 +283,14 @@ import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 utils.tweens.startTranslation(
-  box, Vector3.create(1, 1, 1), Vector3.create(2, 1, 2), 2, utils.InterpolationType.LINEAR,
-  function() { console.log('Tween is done') }
+  box,
+  Vector3.create(1, 1, 1),
+  Vector3.create(2, 1, 2),
+  2,
+  utils.InterpolationType.LINEAR,
+  function () {
+    console.log('Tween is done')
+  }
 )
 ```
 
@@ -278,10 +309,9 @@ export * from '@dcl/sdk'
 import { Quaternion } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
-const box = utils.addTestCube(
-  {position: {x: 1, y: 1, z: 1}},
-  function() { utils.perpetualMotions.stopRotation(box) }
-)
+const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } }, function () {
+  utils.perpetualMotions.stopRotation(box)
+})
 
 utils.perpetualMotions.startRotation(box, Quaternion.fromEulerDegrees(0, 45, 0))
 ```
@@ -306,13 +336,13 @@ export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
-const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 let path = [
   Vector3.create(1, 1, 1),
   Vector3.create(1, 1, 15),
   Vector3.create(15, 1, 15),
-  Vector3.create(15, 1, 1)
+  Vector3.create(15, 1, 1),
 ]
 
 utils.paths.startStraightPath(box, path, 10)
@@ -329,13 +359,13 @@ export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
-const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 let path = [
   Vector3.create(5, 1, 5),
   Vector3.create(5, 1, 11),
   Vector3.create(11, 1, 11),
-  Vector3.create(11, 1, 5)
+  Vector3.create(11, 1, 5),
 ]
 
 utils.paths.startSmoothPath(box, path, 10, 20)
@@ -349,18 +379,43 @@ import * as utils from '@dcl-sdk/utils'
 import { Color4 } from '@dcl/sdk/math'
 
 // Path points
-const p0 = {x: 2, y: 1, z: 2}
-const p1 = {x: 8, y: 1, z: 2}
-const p2 = {x: 8, y: 1, z: 6}
+const p0 = { x: 2, y: 1, z: 2 }
+const p1 = { x: 8, y: 1, z: 2 }
+const p2 = { x: 8, y: 1, z: 6 }
 
 // Path points' markers
-utils.addTestCube({position: p0}, undefined, undefined, Color4.Red(), false, true)
-utils.addTestCube({position: p1}, undefined, undefined, Color4.Green(), false, true)
-utils.addTestCube({position: p2}, undefined, undefined, Color4.Blue(), false, true)
+utils.addTestCube(
+  { position: p0 },
+  undefined,
+  undefined,
+  Color4.Red(),
+  false,
+  true
+)
+utils.addTestCube(
+  { position: p1 },
+  undefined,
+  undefined,
+  Color4.Green(),
+  false,
+  true
+)
+utils.addTestCube(
+  { position: p2 },
+  undefined,
+  undefined,
+  Color4.Blue(),
+  false,
+  true
+)
 
 const box = utils.addTestCube(
-  {position: p0, scale: {x: 1, y: 1, z: 2}},
-  undefined, undefined, Color4.Yellow(), false, true
+  { position: p0, scale: { x: 1, y: 1, z: 2 } },
+  undefined,
+  undefined,
+  Color4.Yellow(),
+  false,
+  true
 )
 
 function startPath() {
@@ -373,7 +428,9 @@ function startPath() {
     // Set faceDirection to true to align box's rotation with its movement's direction
     true,
     // When path is complete, start it again
-    function() { startPath() }
+    function () {
+      startPath()
+    }
   )
 }
 
@@ -393,21 +450,24 @@ export * from '@dcl/sdk'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
-const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 let path = [
   Vector3.create(5, 1, 5),
   Vector3.create(5, 1, 11),
   Vector3.create(11, 1, 11),
-  Vector3.create(11, 1, 5)
+  Vector3.create(11, 1, 5),
 ]
 
 utils.paths.startStraightPath(
-  box, path, 10, false,
-  function() {
+  box,
+  path,
+  10,
+  false,
+  function () {
     console.log('Path is complete')
   },
-  function(pointIndex, pointCoords, nextPointCoords) {
+  function (pointIndex, pointCoords, nextPointCoords) {
     console.log(`Reached point ${pointIndex}`)
   }
 )
@@ -433,29 +493,31 @@ import { Material, InputAction, pointerEventsSystem } from '@dcl/sdk/ecs'
 import { Color4 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
-const box = utils.addTestCube({position: {x: 5, y: 1, z: 5}})
+const box = utils.addTestCube({ position: { x: 5, y: 1, z: 5 } })
 
 // Box is initally green
-Material.setPbrMaterial(box, {albedoColor: Color4.Green()})
+Material.setPbrMaterial(box, { albedoColor: Color4.Green() })
 
 // Add a toggle
-utils.toggles.addToggle(box, utils.ToggleState.On, function(value) {
+utils.toggles.addToggle(box, utils.ToggleState.On, function (value) {
   if (value == utils.ToggleState.On) {
     // Set color to green
-    Material.setPbrMaterial(box, {albedoColor: Color4.Green()})
+    Material.setPbrMaterial(box, { albedoColor: Color4.Green() })
   } else {
     // Set color to red
-    Material.setPbrMaterial(box, {albedoColor: Color4.Red()})
+    Material.setPbrMaterial(box, { albedoColor: Color4.Red() })
   }
 })
 
 // Listen for click on the box and toggle its state
 pointerEventsSystem.onPointerDown(
   box,
-  function(event) { utils.toggles.flip(box)},
+  function (event) {
+    utils.toggles.flip(box)
+  },
   {
     button: InputAction.IA_POINTER,
-    hoverText: 'click'
+    hoverText: 'click',
   }
 )
 ```
@@ -470,14 +532,14 @@ import { InputAction, pointerEventsSystem } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
-const box = utils.addTestCube({position: {x: 5, y: 1, z: 5}})
+const box = utils.addTestCube({ position: { x: 5, y: 1, z: 5 } })
 
 // Define two positions for toggling
 let pos1 = Vector3.create(5, 1, 5)
 let pos2 = Vector3.create(5, 1, 6)
 
 // Box is moved after its state changes
-utils.toggles.addToggle(box, utils.ToggleState.Off, function(value) {
+utils.toggles.addToggle(box, utils.ToggleState.Off, function (value) {
   if (value == utils.ToggleState.On) {
     utils.tweens.startTranslation(box, pos1, pos2, 1)
   } else {
@@ -488,10 +550,12 @@ utils.toggles.addToggle(box, utils.ToggleState.Off, function(value) {
 // Listen for click on the box and toggle its state
 pointerEventsSystem.onPointerDown(
   box,
-  function(event) { utils.toggles.flip(box)},
+  function (event) {
+    utils.toggles.flip(box)
+  },
   {
     button: InputAction.IA_POINTER,
-    hoverText: 'click'
+    hoverText: 'click',
   }
 )
 ```
@@ -506,15 +570,13 @@ Use `utils.timers.setTimeout` to delay the execution of a function by a given am
 
 This example delays the logging of a message by 1000 milliseconds.
 
-
 ```ts
 export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 
-utils.timers.setTimeout(
-  function() { console.log('1 second passed')},
-  1000
-)
+utils.timers.setTimeout(function () {
+  console.log('1 second passed')
+}, 1000)
 ```
 
 ### Repeat at an interval
@@ -547,20 +609,24 @@ import * as utils from '@dcl-sdk/utils'
 import { Material, InputAction, pointerEventsSystem } from '@dcl/sdk/ecs'
 import { Color4 } from '@dcl/sdk/math'
 
-const box = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
+const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 // Store a timer id in a variable
 const timerId = utils.timers.setInterval(function () {
-  Material.setPbrMaterial(box, {albedoColor: Color4.create(Math.random(), Math.random(),  Math.random(), 1)})
+  Material.setPbrMaterial(box, {
+    albedoColor: Color4.create(Math.random(), Math.random(), Math.random(), 1),
+  })
 }, 1000)
 
 pointerEventsSystem.onPointerDown(
   box,
   // Cancel a timer when user clicks on a box
-  function(event) { utils.timers.clearInterval(timerId) },
+  function (event) {
+    utils.timers.clearInterval(timerId)
+  },
   {
     button: InputAction.IA_POINTER,
-    hoverText: 'click'
+    hoverText: 'click',
   }
 )
 ```
@@ -575,34 +641,43 @@ Use `utils.triggers.addTrigger` to add a trigger area to an entity. It has the f
 
 - `entity`: Trigger's owner entity. Trigger area's coordinates depend on `entity`'s Transform component.
 - `layerMask`: Specificies layers to which this trigger belongs to. The library provides eight layers: `utils.LAYER_1`, ... `utils.LAYER_8`. If an entity is supposed to belong to multiple layers, for example layer 1 and layer 3, set `layerMask` to a combination of layer constants separated by `|` (bitwise OR): `utils.LAYER_1 | utils.LAYER_3`. If an entity is supposed to belong to all 8 layers, set `layerMask` to `utils.ALL_LAYERS`. Default value of `layerMask` is `utils.NO_LAYERS`, i.e. an entity does not belong to any layer and won't be able to trigger other entities (it still can be triggered by others, see `triggeredByMask` below).
-- `triggeredByMask`: Specifies layers which can trigger an entity. For example, if an entity is supposed to be triggered by entities that belong to either or both layer 2 and layer 4, set `triggeredByMask` to `utils.LAYER_2 | utils.LAYER_4`. Default value of `triggeredByMask` is `utils.NO_LAYERS`, i.e. an entity won't be triggered by other entities at all.  When set to `utils.ALL_LAYERS` an entity will be triggered by all entities that belong to at least one layer.
+- `triggeredByMask`: Specifies layers which can trigger an entity. For example, if an entity is supposed to be triggered by entities that belong to either or both layer 2 and layer 4, set `triggeredByMask` to `utils.LAYER_2 | utils.LAYER_4`. Default value of `triggeredByMask` is `utils.NO_LAYERS`, i.e. an entity won't be triggered by other entities at all. When set to `utils.ALL_LAYERS` an entity will be triggered by all entities that belong to at least one layer.
 - `areas`: An array of shapes (either boxes or spheres) which describes trigger area. A box is indicated by the object `{type: 'box', position?: Vector3, scale?: Vector3}`, and a sphere by the object `{type: 'sphere', position?: Vector3, radius?: number}`. `position`, `scale` and `radius` fields are optional and default to `{x: 0, y: 0, z: 0}`, `{x: 1, y: 1, z: 1}` and `1` respectively. Please note that box's or sphere's coordinates are relative to `entity`'s Transform. Additionally, box areas always stay axis-aligned, disregarding `entity`'s rotation.
 - `onEnterCallback`: This function will be called when a trigger's area intersects with an area of another, layer-compatible trigger. It will receive an entity which owns intersecting trigger as a single argument.
 - `onExitCallback`: This function will be called when a trigger's area no longer intersects with an area of another trigger. It will receive an entity which owns formerly intersecting trigger as a single argument.
-- `debugColor`: Defines a color of trigger area's shapes when debug visualization is active: call `utils.triggers.enableDebugDraw(true)` to enable it. 
+- `debugColor`: Defines a color of trigger area's shapes when debug visualization is active: call `utils.triggers.enableDebugDraw(true)` to enable it.
 
 The following example creates a trigger that changes its position randomly when triggered by the player. Please note that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape with `layerMask` set to `utils.LAYER_1` and `triggeredByMask` set to `utils.NO_LAYERS`.
 
 ```ts
-export * from "@dcl/sdk"
-import { Transform } from "@dcl/sdk/ecs"
+export * from '@dcl/sdk'
+import { Transform } from '@dcl/sdk/ecs'
 import * as utils from '@dcl-sdk/utils'
 
 // Create a box with disabled collision
 const box = utils.addTestCube(
-  { position: {x: 2, y: 1, z: 2} },
-  undefined, undefined, undefined, undefined,
+  { position: { x: 2, y: 1, z: 2 } },
+  undefined,
+  undefined,
+  undefined,
+  undefined,
   true
 )
 
-utils.triggers.addTrigger(box, utils.NO_LAYERS, utils.LAYER_1, [{type: 'box'}], function(otherEntity) {
-  console.log(`triggered by ${otherEntity}!`)
-  Transform.getMutable(box).position = {
-    x: 1 + Math.random() * 14,
-    y: 1,
-    z: 1 + Math.random() * 14
+utils.triggers.addTrigger(
+  box,
+  utils.NO_LAYERS,
+  utils.LAYER_1,
+  [{ type: 'box' }],
+  function (otherEntity) {
+    console.log(`triggered by ${otherEntity}!`)
+    Transform.getMutable(box).position = {
+      x: 1 + Math.random() * 14,
+      y: 1,
+      z: 1 + Math.random() * 14,
+    }
   }
-})
+)
 ```
 
 > Tip: to set a custom shape and other parameters of player's trigger first remove a default trigger via `utils.triggers.removeTrigger(engine.PlayerEntity)` and then specify your own trigger via `utils.triggers.addTrigger(engine.PlayerEntity, ...)`.
@@ -618,17 +693,25 @@ As a shortcut for creating a trigger area that is only actioned once when the pl
 In the example below, the trigger area will only display welcome message the first time a player walks in. After that, the entity is removed from the scene.
 
 ```ts
-export * from "@dcl/sdk"
-import { engine, Transform } from "@dcl/sdk/ecs"
+export * from '@dcl/sdk'
+import { engine, Transform } from '@dcl/sdk/ecs'
 import * as utils from '@dcl-sdk/utils'
 
 const triggerEntity = engine.addEntity()
 Transform.create(triggerEntity)
 
 utils.triggers.oneTimeTrigger(
-  triggerEntity, utils.NO_LAYERS, utils.LAYER_1,
-  [{type: 'box', position: {x: 4, y: 1, z: 4}, scale: {x: 8, y: 1, z: 8}}],
-  function(otherEntity) {
+  triggerEntity,
+  utils.NO_LAYERS,
+  utils.LAYER_1,
+  [
+    {
+      type: 'box',
+      position: { x: 4, y: 1, z: 4 },
+      scale: { x: 8, y: 1, z: 8 },
+    },
+  ],
+  function (otherEntity) {
     console.log('Welcome!')
   }
 )
@@ -649,10 +732,10 @@ Food is triggered (or eaten) by both cat and mouse. Also, mice are eaten by cats
 Cat and mouse always move towards the food. When food or mouse are eaten, they respawn in a random location.
 
 ```ts
-export * from "@dcl/sdk"
-import { engine, Transform } from "@dcl/sdk/ecs"
+export * from '@dcl/sdk'
+import { engine, Transform } from '@dcl/sdk/ecs'
 import * as utils from '@dcl-sdk/utils'
-import { Color4 } from "@dcl/sdk/math"
+import { Color4 } from '@dcl/sdk/math'
 
 // Define layers
 const FOOD_LAYER = utils.LAYER_1
@@ -664,18 +747,24 @@ utils.triggers.removeTrigger(engine.PlayerEntity)
 
 // Create food
 const food = utils.addTestCube(
-  {position: {x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14}},
-  undefined, undefined, Color4.Green(), false, true
+  { position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 } },
+  undefined,
+  undefined,
+  Color4.Green(),
+  false,
+  true
 )
 utils.triggers.addTrigger(
-  food, FOOD_LAYER, MOUSE_LAYER | CAT_LAYER,
-  [{type: 'box'}],
-  function(otherEntity) {
+  food,
+  FOOD_LAYER,
+  MOUSE_LAYER | CAT_LAYER,
+  [{ type: 'box' }],
+  function (otherEntity) {
     // Food was eaten either by cat or mouse, "respawn" it
     Transform.getMutable(food).position = {
-	    x: 1 + Math.random() * 14,
-	    y: 0,
-	    z: 1 + Math.random() * 14
+      x: 1 + Math.random() * 14,
+      y: 0,
+      z: 1 + Math.random() * 14,
     }
     // Set mouse and cat moving towards food
     utils.tweens.startTranslation(
@@ -696,20 +785,26 @@ utils.triggers.addTrigger(
 // Create mouse
 const mouse = utils.addTestCube(
   {
-    position: {x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14},
-    scale: {x: 0.5, y: 0.5, z: 0.5}
+    position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 },
+    scale: { x: 0.5, y: 0.5, z: 0.5 },
   },
-  undefined, undefined, Color4.Blue(), true, true
+  undefined,
+  undefined,
+  Color4.Blue(),
+  true,
+  true
 )
 utils.triggers.addTrigger(
-  mouse, MOUSE_LAYER, CAT_LAYER,
-  [{type: 'sphere', radius: 0.25}],
-  function(otherEntity) {
+  mouse,
+  MOUSE_LAYER,
+  CAT_LAYER,
+  [{ type: 'sphere', radius: 0.25 }],
+  function (otherEntity) {
     // Mouse was eaten by cat, "respawn" it
     Transform.getMutable(mouse).position = {
-	    x: 1 + Math.random() * 14,
-	    y: 0,
-	    z: 1 + Math.random() * 14
+      x: 1 + Math.random() * 14,
+      y: 0,
+      z: 1 + Math.random() * 14,
     }
     // Set mouse moving towards food
     utils.tweens.startTranslation(
@@ -723,13 +818,16 @@ utils.triggers.addTrigger(
 
 // Create cat
 const cat = utils.addTestCube(
-  {position: {x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14}},
-  undefined, undefined, Color4.Red(), true, true
+  { position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 } },
+  undefined,
+  undefined,
+  Color4.Red(),
+  true,
+  true
 )
-utils.triggers.addTrigger(
-  cat, CAT_LAYER, CAT_LAYER,
-  [{type: 'sphere', radius: 0.5}]
-)
+utils.triggers.addTrigger(cat, CAT_LAYER, CAT_LAYER, [
+  { type: 'sphere', radius: 0.5 },
+])
 
 // Set mouse and cat moving towards food
 utils.tweens.startTranslation(
@@ -780,8 +878,8 @@ export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 import { Transform } from '@dcl/sdk/ecs'
 
-const cube = utils.addTestCube({position: {x: 1, y: 1, z: 1}})
-const childCube = utils.addTestCube({position: {x: 0, y: 1, z: 0}})
+const cube = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
+const childCube = utils.addTestCube({ position: { x: 0, y: 1, z: 0 } })
 Transform.getMutable(childCube).parent = cube
 
 const worldPos = utils.getWorldPosition(childCube)
@@ -801,19 +899,98 @@ import { Transform } from '@dcl/sdk/ecs'
 import { Quaternion } from '@dcl/sdk/math'
 
 const cube = utils.addTestCube({
-  position: {x: 1, y: 1, z: 1},
-  rotation: Quaternion.fromEulerDegrees(0, 30, 0)
+  position: { x: 1, y: 1, z: 1 },
+  rotation: Quaternion.fromEulerDegrees(0, 30, 0),
 })
 const childCube = utils.addTestCube({
-  position: {x: 0, y: 1, z: 0},
-  rotation: Quaternion.fromEulerDegrees(0, 60, 0)
+  position: { x: 0, y: 1, z: 0 },
+  rotation: Quaternion.fromEulerDegrees(0, 60, 0),
 })
 Transform.getMutable(childCube).parent = cube
 
-const worldRot = Quaternion.toEulerAngles(
-  utils.getWorldRotation(childCube)
-)
+const worldRot = Quaternion.toEulerAngles(utils.getWorldRotation(childCube))
 console.log(`${worldRot.x} ${worldRot.y} ${worldRot.z}`)
+```
+
+## Other helpers
+
+The library offers a few other functions that may be useful as shortcuts for common use cases.
+
+## Get entity parent
+
+Returns an entity that is the parent of the provided entity.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+const box = utils.addTestCube()
+
+const boxParent = utils.addTestCube()
+
+// set boxParent as the parent of box
+Transform.getMutable(box).parent = boxParent
+
+const parent = utils.getEntityParent(box)
+
+// should log the id of boxParent
+console.log(parent)
+```
+
+## Get entities with parent
+
+Returns an array of entities that all share the provided entity as parent.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+const box = utils.addTestCube()
+
+const boxParent = utils.addTestCube()
+
+// set boxParent as the parent of box
+Transform.getMutable(box).parent = boxParent
+
+const children = utils.getEntitiesWithParent(boxParent)
+
+// should log an array including the id of box
+console.log(children)
+```
+
+## Get player position
+
+Returns the position of the player's avatar.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+export function main() {
+  const playerPos = utils.getPlayerPosition()
+
+  // should log the player's current position
+  console.log(playerPos)
+}
+```
+
+Note: Always call this function inside the main() function, a function called indirectly by it, or a system. Otherwise, you might be attempting to fetch data that doesn't yet exist.
+
+## Play sound
+
+Plays a sound from an audio file, at a given location in the scene. This saves you from having to create an entity and give it a position and AudioSource component.
+
+```ts
+export * from '@dcl/sdk'
+import * as utils from '@dcl-sdk/utils'
+
+export function main() {
+  // play once at the camera's position
+  utils.playSound('assets/sounds/hooray.mp3')
+
+  // loop as a positional sound in a given location
+  utils.playSound('assets/sounds/crickets.mp3', true, Vector3.create(10, 1, 14))
+}
 ```
 
 ## Action sequence
@@ -868,10 +1045,9 @@ import * as utils from '@dcl-sdk/utils'
 let boxClicked = false
 
 // Create box entity
-const box = utils.addTestCube(
-  {position: {x: 14, y: 0, z: 14}},
-  (e) => { boxClicked = true }
-)
+const box = utils.addTestCube({ position: { x: 14, y: 0, z: 14 } }, (e) => {
+  boxClicked = true
+})
 
 // Use IAction to define action for scaling
 class ScaleAction implements utils.actions.IAction {
@@ -895,7 +1071,9 @@ class ScaleAction implements utils.actions.IAction {
       this.scale,
       1.5,
       utils.InterpolationType.EASEINQUAD,
-      () => {this.hasFinished = true}
+      () => {
+        this.hasFinished = true
+      }
     )
   }
   // Method to run on every frame
@@ -924,7 +1102,9 @@ class MoveAction implements utils.actions.IAction {
       this.position,
       4,
       utils.InterpolationType.LINEAR,
-      () => { this.hasFinished = true }
+      () => {
+        this.hasFinished = true
+      }
     )
   }
 
@@ -943,7 +1123,7 @@ const builder = new utils.actions.SequenceBuilder()
   .then(new MoveAction(box, Vector3.create(1, 0, 1)))
 
 // Run built sequence and destroy it once it finishes
-const runner = new utils.actions.SequenceRunner(
-  engine, builder, () => { runner.destroy() }
-)
+const runner = new utils.actions.SequenceRunner(engine, builder, () => {
+  runner.destroy()
+})
 ```

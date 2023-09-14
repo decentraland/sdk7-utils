@@ -5,17 +5,21 @@ import { Vector3, Quaternion } from '@dcl/sdk/math'
  * Returns an array of entities that all share the provided entity as parent.
  *
  * @param parent - Parent of the entities you want to fetch. 
- * @returns An array of [entity, transform] for each entity that is a child of the provided entity. If the entity has no children, it returns null.
+ * @returns An array of entities that are children of the provided entity. If the entity has no children, it returns an empty array.
  * @public
  */
-export function* getEntitiesWithParent(
+export function getEntitiesWithParent(
 	parent: Entity
-) {
+): Entity[] {
+	const entitiesWithParent: Entity[] = [];
+
 	for (const [entity, transform] of engine.getEntitiesWith(Transform)) {
 		if (transform.parent === parent) {
-			yield [entity, transform]
+			entitiesWithParent.push(entity);
 		}
 	}
+
+	return entitiesWithParent;
 }
 
 
@@ -26,10 +30,16 @@ export function* getEntitiesWithParent(
  * @returns The parent entity. If no parent is found it defaults to the root entity of the scene.
  * @public
  */
-export function* getEntityParent(
+
+export function getEntityParent(
 	child: Entity
-) {
-	return Transform.getOrNull(child)?.parent || engine.RootEntity
+): Entity {
+	const transform = Transform.getOrNull(child);
+	if (transform) {
+		return transform.parent as Entity;
+	} else {
+		return engine.RootEntity as Entity;
+	}
 }
 
 
@@ -39,7 +49,7 @@ export function* getEntityParent(
  * @returns A Vector3 with the current position of the player's avatar, relative to the scene's origin. If no data can be retrieved, it returns (0,0,0).
  * @public
  */
-export function getPlayerPosition() {
+export function getPlayerPosition(): Vector3 {
 	return Transform.getOrNull(engine.PlayerEntity)?.position || Vector3.create()
 }
 
@@ -51,7 +61,6 @@ export function getPlayerPosition() {
  * @param file - Path to an audio file stored in the scene's folder, as a string.
  * @param loop - Boolean to specify if the sound should be played once or looped. False by default.
  * @param position - Vector3 with the position relative to the scene's origin. If not provided, the sound plays at the camera's location.
- * 
  * @returns An array of [entity, transform] for each entity that is a child of the provided entity. If the entity has no children, it returns null.
  * @public
  */
@@ -68,8 +77,7 @@ export function playSound(
 	})
 
 	Transform.create(entity, {
-		parent: position ? engine.RootEntity : engine.CameraEntity,
-		position
+		position: position ? position : getPlayerPosition()
 	})
 
 	return entity
