@@ -1,63 +1,70 @@
 export {
-  InterpolationType,
-  remap,
-  interpolate,
-  getWorldPosition,
-  getWorldRotation
+	InterpolationType,
+	remap,
+	interpolate,
+	getWorldPosition,
+	getWorldRotation
 } from './math'
 
 export {
-  addLabel,
-  addTestCube
+	addLabel,
+	addTestCube
 } from './debug'
 
 export {
-  ToggleState,
-  ToggleCallback,
-  Toggles,
-  toggles
+	ToggleState,
+	ToggleCallback,
+	Toggles,
+	toggles
 } from './toggle'
 
 export {
-  Tweens,
-  tweens
+	Tweens,
+	tweens
 } from './tween'
 
 export {
-  PerpetualMotions,
-  perpetualMotions
+	PerpetualMotions,
+	perpetualMotions
 } from './perpetualMotion'
 
 export {
-  Paths,
-  paths
+	Paths,
+	paths
 } from './path'
 
 export {
-  Triggers,
-  triggers,
-  LAYER_1,
-  LAYER_2,
-  LAYER_3,
-  LAYER_4,
-  LAYER_5,
-  LAYER_6,
-  LAYER_7,
-  LAYER_8,
-  ALL_LAYERS,
-  NO_LAYERS
+	Triggers,
+	triggers,
+	LAYER_1,
+	LAYER_2,
+	LAYER_3,
+	LAYER_4,
+	LAYER_5,
+	LAYER_6,
+	LAYER_7,
+	LAYER_8,
+	ALL_LAYERS,
+	NO_LAYERS
 } from './trigger'
 
 export {
-  Timers,
-  TimerId,
-  timers
+	Timers,
+	TimerId,
+	timers
 } from './timer'
 
 export {
-  actions
+	actions
 } from './action'
 
 export {
-  priority
+	priority
 } from './priority'
+
+export {
+	getEntitiesWithParent,
+	getEntityParent,
+	getPlayerPosition,
+	playSound
+} from './helpers'
