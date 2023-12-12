@@ -183,11 +183,25 @@ function createTriggers(targetEngine: IEngine) {
 
 		if (trigger.triggeredByMask == 1) {
 			// check just player 
-			// const intersecting = areTriggersIntersecting(shapeWorldPos.get(entity)!, trigger, shapeWorldPos.get(otherEntity)!, otherTrigger)
-			// if (intersecting)
-			// 	collisions.add(otherEntity)           
+			const playerEntity = targetEngine.PlayerEntity
+			const playerTrigger = Trigger.get(targetEngine.PlayerEntity)
+
+			if (playerEntity == entity)
+				return collisions
+
+			if (!playerTrigger.active)
+				return collisions
+
+			if (!(trigger.triggeredByMask & playerTrigger.layerMask))
+				return collisions
+
+			const intersecting = areTriggersIntersecting(shapeWorldPos.get(entity)!, trigger, shapeWorldPos.get(playerEntity)!, playerTrigger)
+			if (intersecting) {
+				if (collisions === EMPTY_IMMUTABLE_SET) collisions = new Set()
+				collisions.add(playerEntity)
+			}
 		} else {
-			// iterate over full list as we do now
+			// iterate over full list of triggers
 			for (const [otherEntity, otherTrigger] of targetEngine.getEntitiesWith(Trigger, Transform)) {
 				if (otherEntity == entity)
 					continue
@@ -445,3 +459,10 @@ function createTriggers(targetEngine: IEngine) {
 }
 
 export const triggers = createTriggers(engine)
+
+
+const EMPTY_IMMUTABLE_SET: Set<Entity> = new Set()
+
+EMPTY_IMMUTABLE_SET.add = (entity: Entity) => { debugger; throw new Error("EMPTY_SET is read only") }
+EMPTY_IMMUTABLE_SET.delete = (entity: Entity) => { throw new Error("EMPTY_SET is read only") }
+EMPTY_IMMUTABLE_SET.has = (entity: Entity) => { return false }
