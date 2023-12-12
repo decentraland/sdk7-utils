@@ -14,6 +14,8 @@ export const LAYER_8 = 128
 export const ALL_LAYERS = 255
 export const NO_LAYERS = 0
 
+export let PLAYER_LAYER_ID = LAYER_1
+
 export type TriggerBoxAreaSpec = {
 	type: 'box',
 	position?: Vector3,
@@ -174,14 +176,14 @@ function createTriggers(targetEngine: IEngine) {
 	}
 
 	function computeCollisions(entity: Entity, shapeWorldPos: Map<Entity, Array<Vector3>>) {
-		let collisions: Set<Entity> = new Set()
+		let collisions: Set<Entity> = EMPTY_IMMUTABLE_SET
 		const trigger = Trigger.get(entity)
 
 		if (!trigger.active)
 			return collisions
 
 
-		if (trigger.triggeredByMask == 1) {
+		if (trigger.triggeredByMask == PLAYER_LAYER_ID) {
 			// check just player 
 			const playerEntity = targetEngine.PlayerEntity
 			const playerTrigger = Trigger.get(targetEngine.PlayerEntity)
@@ -213,10 +215,12 @@ function createTriggers(targetEngine: IEngine) {
 					continue
 
 				const intersecting = areTriggersIntersecting(shapeWorldPos.get(entity)!, trigger, shapeWorldPos.get(otherEntity)!, otherTrigger)
-				if (intersecting)
-					collisions.add(otherEntity)
+				if (intersecting) { }
+				if (collisions === EMPTY_IMMUTABLE_SET) collisions = new Set()
+				collisions.add(otherEntity)
 			}
 		}
+
 
 
 
@@ -446,7 +450,7 @@ function createTriggers(targetEngine: IEngine) {
 	}
 
 	triggersInterface.addTrigger(
-		targetEngine.PlayerEntity, LAYER_1, NO_LAYERS,
+		targetEngine.PlayerEntity, PLAYER_LAYER_ID, NO_LAYERS,
 		[{
 			type: 'box',
 			scale: { x: 0.65, y: 1.92, z: 0.65 },

@@ -45,7 +45,8 @@ export {
 	LAYER_7,
 	LAYER_8,
 	ALL_LAYERS,
-	NO_LAYERS
+	NO_LAYERS,
+	PLAYER_LAYER_ID
 } from './trigger'
 
 export {
