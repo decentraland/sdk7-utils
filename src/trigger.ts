@@ -215,7 +215,10 @@ function createTriggers(targetEngine: IEngine) {
 					continue
 
 				const intersecting = areTriggersIntersecting(shapeWorldPos.get(entity)!, trigger, shapeWorldPos.get(otherEntity)!, otherTrigger)
-				if (intersecting) { }
+				if (intersecting) {
+					if (collisions === EMPTY_IMMUTABLE_SET) collisions = new Set()
+					collisions.add(otherEntity)
+				}
 				if (collisions === EMPTY_IMMUTABLE_SET) collisions = new Set()
 				collisions.add(otherEntity)
 			}
