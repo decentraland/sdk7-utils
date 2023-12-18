@@ -219,8 +219,6 @@ function createTriggers(targetEngine: IEngine) {
 					if (collisions === EMPTY_IMMUTABLE_SET) collisions = new Set()
 					collisions.add(otherEntity)
 				}
-				if (collisions === EMPTY_IMMUTABLE_SET) collisions = new Set()
-				collisions.add(otherEntity)
 			}
 		}
 
