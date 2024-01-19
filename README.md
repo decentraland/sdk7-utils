@@ -124,7 +124,7 @@ export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 
 utils.addTestCube({ position: { x: 2, y: 1, z: 2 } }, (event) => {
-  console.log('Cube clicked')
+	console.log('Cube clicked')
 })
 ```
 
@@ -220,11 +220,11 @@ const box = utils.addTestCube()
 let startPos = Vector3.create(1, 1, 1)
 let endPos = Vector3.create(15, 1, 15)
 utils.tweens.startTranslation(
-  box,
-  startPos,
-  endPos,
-  2,
-  utils.InterpolationType.EASEINQUAD
+	box,
+	startPos,
+	endPos,
+	2,
+	utils.InterpolationType.EASEINQUAD
 )
 ```
 
@@ -241,34 +241,34 @@ import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 utils.tweens.startTranslation(
-  box,
-  Vector3.create(1, 1, 1),
-  Vector3.create(15, 1, 15),
-  10
+	box,
+	Vector3.create(1, 1, 1),
+	Vector3.create(15, 1, 15),
+	10
 )
 utils.tweens.startRotation(
-  box,
-  Quaternion.fromEulerDegrees(0, 0, 0),
-  Quaternion.fromEulerDegrees(0, 90, 0),
-  10
+	box,
+	Quaternion.fromEulerDegrees(0, 0, 0),
+	Quaternion.fromEulerDegrees(0, 90, 0),
+	10
 )
 utils.tweens.startScaling(
-  box,
-  Vector3.create(1, 1, 1),
-  Vector3.create(2, 2, 2),
-  10
+	box,
+	Vector3.create(1, 1, 1),
+	Vector3.create(2, 2, 2),
+	10
 )
 
 const sphere = utils.addTestCube(
-  { position: { x: 2, y: 1, z: 1 } },
-  function (event) {
-    utils.tweens.stopTranslation(box)
-    utils.tweens.stopRotation(box)
-    utils.tweens.stopScaling(box)
-  },
-  undefined,
-  Color4.Red(),
-  true
+	{ position: { x: 2, y: 1, z: 1 } },
+	function (event) {
+		utils.tweens.stopTranslation(box)
+		utils.tweens.stopRotation(box)
+		utils.tweens.stopScaling(box)
+	},
+	undefined,
+	Color4.Red(),
+	true
 )
 ```
 
@@ -283,14 +283,14 @@ import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube()
 utils.tweens.startTranslation(
-  box,
-  Vector3.create(1, 1, 1),
-  Vector3.create(2, 1, 2),
-  2,
-  utils.InterpolationType.LINEAR,
-  function () {
-    console.log('Tween is done')
-  }
+	box,
+	Vector3.create(1, 1, 1),
+	Vector3.create(2, 1, 2),
+	2,
+	utils.InterpolationType.LINEAR,
+	function () {
+		console.log('Tween is done')
+	}
 )
 ```
 
@@ -298,7 +298,13 @@ utils.tweens.startTranslation(
 
 ### Perpetual rotation
 
-To rotate an entity continuously, use `utils.perpetualMotions.startRotation`. The entity will keep rotating forever until it's explicitly stopped. `rotationVelocity` argument is a quaternion describing the desired rotation to perform each second second. For example `Quaternion.fromEulerDegrees(0, 45, 0)` rotates the entity on the Y axis at a speed of 45 degrees per second, meaning that it makes a full turn every 8 seconds.
+To rotate an entity continuously, use `utils.perpetualMotions.smoothRotation`. It takes the following arguments:
+
+- entity: The entity to rotate.
+- duration: The time it takes in milliseconds for the entity to do a full 360 turn.
+- axis: _(optional)_ Which axis to spin on. Accepted values are _"x"_, _"y"_ and _"z"_. By default it spins on the y axis (never looking up or down from the horizon).
+
+The entity will keep rotating forever until it's explicitly stopped.
 
 Rotation can be stopped by calling `utils.perpetualMotions.stopRotation`.
 
@@ -310,10 +316,10 @@ import { Quaternion } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
 const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } }, function () {
-  utils.perpetualMotions.stopRotation(box)
+	utils.perpetualMotions.stopRotation(box)
 })
 
-utils.perpetualMotions.startRotation(box, Quaternion.fromEulerDegrees(0, 45, 0))
+utils.perpetualMotions.smoothRotation(box, 1000)
 ```
 
 ## Path following
@@ -339,10 +345,10 @@ import * as utils from '@dcl-sdk/utils'
 const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 let path = [
-  Vector3.create(1, 1, 1),
-  Vector3.create(1, 1, 15),
-  Vector3.create(15, 1, 15),
-  Vector3.create(15, 1, 1),
+	Vector3.create(1, 1, 1),
+	Vector3.create(1, 1, 15),
+	Vector3.create(15, 1, 15),
+	Vector3.create(15, 1, 1),
 ]
 
 utils.paths.startStraightPath(box, path, 10)
@@ -362,10 +368,10 @@ import * as utils from '@dcl-sdk/utils'
 const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 let path = [
-  Vector3.create(5, 1, 5),
-  Vector3.create(5, 1, 11),
-  Vector3.create(11, 1, 11),
-  Vector3.create(11, 1, 5),
+	Vector3.create(5, 1, 5),
+	Vector3.create(5, 1, 11),
+	Vector3.create(11, 1, 11),
+	Vector3.create(11, 1, 5),
 ]
 
 utils.paths.startSmoothPath(box, path, 10, 20)
@@ -385,53 +391,53 @@ const p2 = { x: 8, y: 1, z: 6 }
 
 // Path points' markers
 utils.addTestCube(
-  { position: p0 },
-  undefined,
-  undefined,
-  Color4.Red(),
-  false,
-  true
+	{ position: p0 },
+	undefined,
+	undefined,
+	Color4.Red(),
+	false,
+	true
 )
 utils.addTestCube(
-  { position: p1 },
-  undefined,
-  undefined,
-  Color4.Green(),
-  false,
-  true
+	{ position: p1 },
+	undefined,
+	undefined,
+	Color4.Green(),
+	false,
+	true
 )
 utils.addTestCube(
-  { position: p2 },
-  undefined,
-  undefined,
-  Color4.Blue(),
-  false,
-  true
+	{ position: p2 },
+	undefined,
+	undefined,
+	Color4.Blue(),
+	false,
+	true
 )
 
 const box = utils.addTestCube(
-  { position: p0, scale: { x: 1, y: 1, z: 2 } },
-  undefined,
-  undefined,
-  Color4.Yellow(),
-  false,
-  true
+	{ position: p0, scale: { x: 1, y: 1, z: 2 } },
+	undefined,
+	undefined,
+	Color4.Yellow(),
+	false,
+	true
 )
 
 function startPath() {
-  utils.paths.startSmoothPath(
-    // Set the last point of the path to be identical to the first one to achieve looping
-    box,
-    [p0, p1, p2, p0],
-    5,
-    50,
-    // Set faceDirection to true to align box's rotation with its movement's direction
-    true,
-    // When path is complete, start it again
-    function () {
-      startPath()
-    }
-  )
+	utils.paths.startSmoothPath(
+		// Set the last point of the path to be identical to the first one to achieve looping
+		box,
+		[p0, p1, p2, p0],
+		5,
+		50,
+		// Set faceDirection to true to align box's rotation with its movement's direction
+		true,
+		// When path is complete, start it again
+		function () {
+			startPath()
+		}
+	)
 }
 
 startPath()
@@ -453,23 +459,23 @@ import * as utils from '@dcl-sdk/utils'
 const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 let path = [
-  Vector3.create(5, 1, 5),
-  Vector3.create(5, 1, 11),
-  Vector3.create(11, 1, 11),
-  Vector3.create(11, 1, 5),
+	Vector3.create(5, 1, 5),
+	Vector3.create(5, 1, 11),
+	Vector3.create(11, 1, 11),
+	Vector3.create(11, 1, 5),
 ]
 
 utils.paths.startStraightPath(
-  box,
-  path,
-  10,
-  false,
-  function () {
-    console.log('Path is complete')
-  },
-  function (pointIndex, pointCoords, nextPointCoords) {
-    console.log(`Reached point ${pointIndex}`)
-  }
+	box,
+	path,
+	10,
+	false,
+	function () {
+		console.log('Path is complete')
+	},
+	function (pointIndex, pointCoords, nextPointCoords) {
+		console.log(`Reached point ${pointIndex}`)
+	}
 )
 ```
 
@@ -500,25 +506,25 @@ Material.setPbrMaterial(box, { albedoColor: Color4.Green() })
 
 // Add a toggle
 utils.toggles.addToggle(box, utils.ToggleState.On, function (value) {
-  if (value == utils.ToggleState.On) {
-    // Set color to green
-    Material.setPbrMaterial(box, { albedoColor: Color4.Green() })
-  } else {
-    // Set color to red
-    Material.setPbrMaterial(box, { albedoColor: Color4.Red() })
-  }
+	if (value == utils.ToggleState.On) {
+		// Set color to green
+		Material.setPbrMaterial(box, { albedoColor: Color4.Green() })
+	} else {
+		// Set color to red
+		Material.setPbrMaterial(box, { albedoColor: Color4.Red() })
+	}
 })
 
 // Listen for click on the box and toggle its state
 pointerEventsSystem.onPointerDown(
-  box,
-  function (event) {
-    utils.toggles.flip(box)
-  },
-  {
-    button: InputAction.IA_POINTER,
-    hoverText: 'click',
-  }
+	box,
+	function (event) {
+		utils.toggles.flip(box)
+	},
+	{
+		button: InputAction.IA_POINTER,
+		hoverText: 'click',
+	}
 )
 ```
 
@@ -540,23 +546,23 @@ let pos2 = Vector3.create(5, 1, 6)
 
 // Box is moved after its state changes
 utils.toggles.addToggle(box, utils.ToggleState.Off, function (value) {
-  if (value == utils.ToggleState.On) {
-    utils.tweens.startTranslation(box, pos1, pos2, 1)
-  } else {
-    utils.tweens.startTranslation(box, pos2, pos1, 1)
-  }
+	if (value == utils.ToggleState.On) {
+		utils.tweens.startTranslation(box, pos1, pos2, 1)
+	} else {
+		utils.tweens.startTranslation(box, pos2, pos1, 1)
+	}
 })
 
 // Listen for click on the box and toggle its state
 pointerEventsSystem.onPointerDown(
-  box,
-  function (event) {
-    utils.toggles.flip(box)
-  },
-  {
-    button: InputAction.IA_POINTER,
-    hoverText: 'click',
-  }
+	box,
+	function (event) {
+		utils.toggles.flip(box)
+	},
+	{
+		button: InputAction.IA_POINTER,
+		hoverText: 'click',
+	}
 )
 ```
 
@@ -575,7 +581,7 @@ export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 
 utils.timers.setTimeout(function () {
-  console.log('1 second passed')
+	console.log('1 second passed')
 }, 1000)
 ```
 
@@ -594,8 +600,8 @@ import { Vector3 } from '@dcl/sdk/math'
 const box = utils.addTestCube()
 
 utils.timers.setInterval(function () {
-  let size = Math.random()
-  Transform.getMutable(box).scale = Vector3.create(size, size, size)
+	let size = Math.random()
+	Transform.getMutable(box).scale = Vector3.create(size, size, size)
 }, 2000)
 ```
 
@@ -613,21 +619,21 @@ const box = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
 
 // Store a timer id in a variable
 const timerId = utils.timers.setInterval(function () {
-  Material.setPbrMaterial(box, {
-    albedoColor: Color4.create(Math.random(), Math.random(), Math.random(), 1),
-  })
+	Material.setPbrMaterial(box, {
+		albedoColor: Color4.create(Math.random(), Math.random(), Math.random(), 1),
+	})
 }, 1000)
 
 pointerEventsSystem.onPointerDown(
-  box,
-  // Cancel a timer when user clicks on a box
-  function (event) {
-    utils.timers.clearInterval(timerId)
-  },
-  {
-    button: InputAction.IA_POINTER,
-    hoverText: 'click',
-  }
+	box,
+	// Cancel a timer when user clicks on a box
+	function (event) {
+		utils.timers.clearInterval(timerId)
+	},
+	{
+		button: InputAction.IA_POINTER,
+		hoverText: 'click',
+	}
 )
 ```
 
@@ -656,27 +662,27 @@ import * as utils from '@dcl-sdk/utils'
 
 // Create a box with disabled collision
 const box = utils.addTestCube(
-  { position: { x: 2, y: 1, z: 2 } },
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  true
+	{ position: { x: 2, y: 1, z: 2 } },
+	undefined,
+	undefined,
+	undefined,
+	undefined,
+	true
 )
 
 utils.triggers.addTrigger(
-  box,
-  utils.NO_LAYERS,
-  utils.LAYER_1,
-  [{ type: 'box' }],
-  function (otherEntity) {
-    console.log(`triggered by ${otherEntity}!`)
-    Transform.getMutable(box).position = {
-      x: 1 + Math.random() * 14,
-      y: 1,
-      z: 1 + Math.random() * 14,
-    }
-  }
+	box,
+	utils.NO_LAYERS,
+	utils.LAYER_1,
+	[{ type: 'box' }],
+	function (otherEntity) {
+		console.log(`triggered by ${otherEntity}!`)
+		Transform.getMutable(box).position = {
+			x: 1 + Math.random() * 14,
+			y: 1,
+			z: 1 + Math.random() * 14,
+		}
+	}
 )
 ```
 
@@ -701,19 +707,19 @@ const triggerEntity = engine.addEntity()
 Transform.create(triggerEntity)
 
 utils.triggers.oneTimeTrigger(
-  triggerEntity,
-  utils.NO_LAYERS,
-  utils.LAYER_1,
-  [
-    {
-      type: 'box',
-      position: { x: 4, y: 1, z: 4 },
-      scale: { x: 8, y: 1, z: 8 },
-    },
-  ],
-  function (otherEntity) {
-    console.log('Welcome!')
-  }
+	triggerEntity,
+	utils.NO_LAYERS,
+	utils.LAYER_1,
+	[
+		{
+			type: 'box',
+			position: { x: 4, y: 1, z: 4 },
+			scale: { x: 8, y: 1, z: 8 },
+		},
+	],
+	function (otherEntity) {
+		console.log('Welcome!')
+	}
 )
 ```
 
@@ -747,100 +753,100 @@ utils.triggers.removeTrigger(engine.PlayerEntity)
 
 // Create food
 const food = utils.addTestCube(
-  { position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 } },
-  undefined,
-  undefined,
-  Color4.Green(),
-  false,
-  true
+	{ position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 } },
+	undefined,
+	undefined,
+	Color4.Green(),
+	false,
+	true
 )
 utils.triggers.addTrigger(
-  food,
-  FOOD_LAYER,
-  MOUSE_LAYER | CAT_LAYER,
-  [{ type: 'box' }],
-  function (otherEntity) {
-    // Food was eaten either by cat or mouse, "respawn" it
-    Transform.getMutable(food).position = {
-      x: 1 + Math.random() * 14,
-      y: 0,
-      z: 1 + Math.random() * 14,
-    }
-    // Set mouse and cat moving towards food
-    utils.tweens.startTranslation(
-      mouse,
-      Transform.get(mouse).position,
-      Transform.get(food).position,
-      4
-    )
-    utils.tweens.startTranslation(
-      cat,
-      Transform.get(cat).position,
-      Transform.get(food).position,
-      4
-    )
-  }
+	food,
+	FOOD_LAYER,
+	MOUSE_LAYER | CAT_LAYER,
+	[{ type: 'box' }],
+	function (otherEntity) {
+		// Food was eaten either by cat or mouse, "respawn" it
+		Transform.getMutable(food).position = {
+			x: 1 + Math.random() * 14,
+			y: 0,
+			z: 1 + Math.random() * 14,
+		}
+		// Set mouse and cat moving towards food
+		utils.tweens.startTranslation(
+			mouse,
+			Transform.get(mouse).position,
+			Transform.get(food).position,
+			4
+		)
+		utils.tweens.startTranslation(
+			cat,
+			Transform.get(cat).position,
+			Transform.get(food).position,
+			4
+		)
+	}
 )
 
 // Create mouse
 const mouse = utils.addTestCube(
-  {
-    position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 },
-    scale: { x: 0.5, y: 0.5, z: 0.5 },
-  },
-  undefined,
-  undefined,
-  Color4.Blue(),
-  true,
-  true
+	{
+		position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 },
+		scale: { x: 0.5, y: 0.5, z: 0.5 },
+	},
+	undefined,
+	undefined,
+	Color4.Blue(),
+	true,
+	true
 )
 utils.triggers.addTrigger(
-  mouse,
-  MOUSE_LAYER,
-  CAT_LAYER,
-  [{ type: 'sphere', radius: 0.25 }],
-  function (otherEntity) {
-    // Mouse was eaten by cat, "respawn" it
-    Transform.getMutable(mouse).position = {
-      x: 1 + Math.random() * 14,
-      y: 0,
-      z: 1 + Math.random() * 14,
-    }
-    // Set mouse moving towards food
-    utils.tweens.startTranslation(
-      mouse,
-      Transform.get(mouse).position,
-      Transform.get(food).position,
-      4
-    )
-  }
+	mouse,
+	MOUSE_LAYER,
+	CAT_LAYER,
+	[{ type: 'sphere', radius: 0.25 }],
+	function (otherEntity) {
+		// Mouse was eaten by cat, "respawn" it
+		Transform.getMutable(mouse).position = {
+			x: 1 + Math.random() * 14,
+			y: 0,
+			z: 1 + Math.random() * 14,
+		}
+		// Set mouse moving towards food
+		utils.tweens.startTranslation(
+			mouse,
+			Transform.get(mouse).position,
+			Transform.get(food).position,
+			4
+		)
+	}
 )
 
 // Create cat
 const cat = utils.addTestCube(
-  { position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 } },
-  undefined,
-  undefined,
-  Color4.Red(),
-  true,
-  true
+	{ position: { x: 1 + Math.random() * 14, y: 0, z: 1 + Math.random() * 14 } },
+	undefined,
+	undefined,
+	Color4.Red(),
+	true,
+	true
 )
 utils.triggers.addTrigger(cat, CAT_LAYER, CAT_LAYER, [
-  { type: 'sphere', radius: 0.5 },
+	{ type: 'sphere', radius: 0.5 },
 ])
 
 // Set mouse and cat moving towards food
 utils.tweens.startTranslation(
-  mouse,
-  Transform.get(mouse).position,
-  Transform.get(food).position,
-  4
+	mouse,
+	Transform.get(mouse).position,
+	Transform.get(food).position,
+	4
 )
 utils.tweens.startTranslation(
-  cat,
-  Transform.get(cat).position,
-  Transform.get(food).position,
-  4
+	cat,
+	Transform.get(cat).position,
+	Transform.get(food).position,
+	4
 )
 ```
 
@@ -899,12 +905,12 @@ import { Transform } from '@dcl/sdk/ecs'
 import { Quaternion } from '@dcl/sdk/math'
 
 const cube = utils.addTestCube({
-  position: { x: 1, y: 1, z: 1 },
-  rotation: Quaternion.fromEulerDegrees(0, 30, 0),
+	position: { x: 1, y: 1, z: 1 },
+	rotation: Quaternion.fromEulerDegrees(0, 30, 0),
 })
 const childCube = utils.addTestCube({
-  position: { x: 0, y: 1, z: 0 },
-  rotation: Quaternion.fromEulerDegrees(0, 60, 0),
+	position: { x: 0, y: 1, z: 0 },
+	rotation: Quaternion.fromEulerDegrees(0, 60, 0),
 })
 Transform.getMutable(childCube).parent = cube
 
@@ -967,10 +973,10 @@ export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 
 export function main() {
-  const playerPos = utils.getPlayerPosition()
+	const playerPos = utils.getPlayerPosition()
 
-  // should log the player's current position
-  console.log(playerPos)
+	// should log the player's current position
+	console.log(playerPos)
 }
 ```
 
@@ -985,11 +991,11 @@ export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 
 export function main() {
-  // play once at the camera's position
-  utils.playSound('assets/sounds/hooray.mp3')
+	// play once at the camera's position
+	utils.playSound('assets/sounds/hooray.mp3')
 
-  // loop as a positional sound in a given location
-  utils.playSound('assets/sounds/crickets.mp3', true, Vector3.create(10, 1, 14))
+	// loop as a positional sound in a given location
+	utils.playSound('assets/sounds/crickets.mp3', true, Vector3.create(10, 1, 14))
 }
 ```
 
@@ -1046,84 +1052,84 @@ let boxClicked = false
 
 // Create box entity
 const box = utils.addTestCube({ position: { x: 14, y: 0, z: 14 } }, (e) => {
-  boxClicked = true
+	boxClicked = true
 })
 
 // Use IAction to define action for scaling
 class ScaleAction implements utils.actions.IAction {
-  hasFinished: boolean = false
-  entity: Entity
-  scale: Vector3
+	hasFinished: boolean = false
+	entity: Entity
+	scale: Vector3
 
-  constructor(entity: Entity, scale: Vector3) {
-    this.entity = entity
-    this.scale = scale
-  }
+	constructor(entity: Entity, scale: Vector3) {
+		this.entity = entity
+		this.scale = scale
+	}
 
-  // Method when action starts
-  onStart(): void {
-    const transform = Transform.get(this.entity)
-    this.hasFinished = false
+	// Method when action starts
+	onStart(): void {
+		const transform = Transform.get(this.entity)
+		this.hasFinished = false
 
-    utils.tweens.startScaling(
-      this.entity,
-      transform.scale,
-      this.scale,
-      1.5,
-      utils.InterpolationType.EASEINQUAD,
-      () => {
-        this.hasFinished = true
-      }
-    )
-  }
-  // Method to run on every frame
-  update(dt: number): void {}
-  // Method to run at the end
-  onFinish(): void {}
+		utils.tweens.startScaling(
+			this.entity,
+			transform.scale,
+			this.scale,
+			1.5,
+			utils.InterpolationType.EASEINQUAD,
+			() => {
+				this.hasFinished = true
+			}
+		)
+	}
+	// Method to run on every frame
+	update(dt: number): void {}
+	// Method to run at the end
+	onFinish(): void {}
 }
 
 // Use IAction to define action for translation
 class MoveAction implements utils.actions.IAction {
-  hasFinished: boolean = false
-  entity: Entity
-  position: Vector3
+	hasFinished: boolean = false
+	entity: Entity
+	position: Vector3
 
-  constructor(entity: Entity, position: Vector3) {
-    this.entity = entity
-    this.position = position
-  }
+	constructor(entity: Entity, position: Vector3) {
+		this.entity = entity
+		this.position = position
+	}
 
-  onStart(): void {
-    const transform = Transform.get(this.entity)
+	onStart(): void {
+		const transform = Transform.get(this.entity)
 
-    utils.tweens.startTranslation(
-      this.entity,
-      transform.position,
-      this.position,
-      4,
-      utils.InterpolationType.LINEAR,
-      () => {
-        this.hasFinished = true
-      }
-    )
-  }
+		utils.tweens.startTranslation(
+			this.entity,
+			transform.position,
+			this.position,
+			4,
+			utils.InterpolationType.LINEAR,
+			() => {
+				this.hasFinished = true
+			}
+		)
+	}
 
-  update(dt: number): void {}
+	update(dt: number): void {}
 
-  onFinish(): void {}
+	onFinish(): void {}
 }
 
 // Use sequence builder to create a sequence
 const builder = new utils.actions.SequenceBuilder()
-  .while(() => !boxClicked)
-  .then(new ScaleAction(box, Vector3.create(1.5, 1.5, 1.5)))
-  .then(new ScaleAction(box, Vector3.create(0.5, 0.5, 0.5)))
-  .endWhile()
-  .then(new ScaleAction(box, Vector3.create(1, 1, 1)))
-  .then(new MoveAction(box, Vector3.create(1, 0, 1)))
+	.while(() => !boxClicked)
+	.then(new ScaleAction(box, Vector3.create(1.5, 1.5, 1.5)))
+	.then(new ScaleAction(box, Vector3.create(0.5, 0.5, 0.5)))
+	.endWhile()
+	.then(new ScaleAction(box, Vector3.create(1, 1, 1)))
+	.then(new MoveAction(box, Vector3.create(1, 0, 1)))
 
 // Run built sequence and destroy it once it finishes
 const runner = new utils.actions.SequenceRunner(engine, builder, () => {
-  runner.destroy()
+	runner.destroy()
 })
 ```
