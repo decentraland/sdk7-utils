@@ -1,7 +1,6 @@
 import { engine, Entity, IEngine, EntityState, Tween, EasingFunction, TweenHelper } from '@dcl/sdk/ecs'
 
 import { priority } from './priority'
-import { Scalar } from '@dcl/sdk/math'
 
 export type OnFinishCallback = () => void
 export type Tweens = ReturnType<typeof createTweens>
@@ -10,14 +9,14 @@ type TweenMap = Map<Entity, {
   callback: OnFinishCallback | undefined
 }>
 
-function createTweens(engine: IEngine) {
+function createTweens(targetEngine: IEngine) {
   const tweenMap: TweenMap = new Map()
 
   function makeSystem(dt: number) {
     const deadTweens = []
 
     for (const [entity, tweenData] of tweenMap.entries()) {
-      if (engine.getEntityState(entity) == EntityState.Removed || !Tween.has(entity)) {
+      if (targetEngine.getEntityState(entity) == EntityState.Removed || !Tween.has(entity)) {
         tweenMap.delete(entity)
         continue
       }
@@ -73,7 +72,7 @@ function createTweens(engine: IEngine) {
     return tweenMap.get(entity)
   }
 
-  engine.addSystem(makeSystem, priority.TweenSystemPriority)
+  targetEngine.addSystem(makeSystem, priority.TweenSystemPriority)
 
   return {
     startTranslation: makeStart('Move'),
