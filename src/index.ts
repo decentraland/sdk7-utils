@@ -1,5 +1,4 @@
 export {
-	InterpolationType,
 	remap,
 	interpolate,
 	getWorldPosition,
