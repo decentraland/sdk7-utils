@@ -187,7 +187,7 @@ function InterpolateEaseInOutExpo(t: number): number {
 
 function InterpolateEaseInElastic(t: number): number {
 	const c4 = (2 * Math.PI) / 3
-	
+
 	return t === 0
 			? 0
 			: t === 1
@@ -197,7 +197,7 @@ function InterpolateEaseInElastic(t: number): number {
 
 function InterpolateEaseOutElastic(t: number): number {
 	const c5 = (2 * Math.PI) / 3
-	
+
 	return t === 0
 			? 0
 			: t === 1
@@ -207,7 +207,7 @@ function InterpolateEaseOutElastic(t: number): number {
 
 function InterpolateEaseInOutElastic(t: number): number {
 	const c6 = (2 * Math.PI) / 4.5
-	
+
 	return t === 0
 			? 0
 			: t === 1

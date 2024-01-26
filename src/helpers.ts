@@ -1,10 +1,11 @@
-import { Entity, engine, Transform, AudioSource } from '@dcl/sdk/ecs'
-import { Vector3, Quaternion } from '@dcl/sdk/math'
+import { Entity, engine, Transform, AudioSource, EasingFunction } from '@dcl/sdk/ecs'
+import { Vector3 } from '@dcl/sdk/math'
+import { InterpolationType } from './math';
 
 /**
  * Returns an array of entities that all share the provided entity as parent.
  *
- * @param parent - Parent of the entities you want to fetch. 
+ * @param parent - Parent of the entities you want to fetch.
  * @returns An array of entities that are children of the provided entity. If the entity has no children, it returns an empty array.
  * @public
  */
@@ -26,7 +27,7 @@ export function getEntitiesWithParent(
 /**
  * Returns an entity that is the parent of the provided entity.
  *
- * @param child - Child of the entity you want to fetch. 
+ * @param child - Child of the entity you want to fetch.
  * @returns The parent entity. If no parent is found it defaults to the root entity of the scene.
  * @public
  */
@@ -81,4 +82,50 @@ export function playSound(
 	})
 
 	return entity
+}
+
+/**
+ * Maps an EasingFunction to the provided InterpolationType
+ *
+ * @param type - an InterpolationType enum type
+ * @returns An EasingFunction enum type
+ * @public
+ */
+export function getEasingFunctionFromInterpolation(type: InterpolationType): EasingFunction {
+	switch (type) {
+		case InterpolationType.LINEAR:
+			return EasingFunction.EF_LINEAR
+		case InterpolationType.EASEINQUAD:
+			return EasingFunction.EF_EASEINQUAD
+		case InterpolationType.EASEOUTQUAD:
+			return EasingFunction.EF_EASEOUTQUAD
+		case InterpolationType.EASEQUAD:
+			return EasingFunction.EF_EASEQUAD
+		case InterpolationType.EASEINSINE:
+			return EasingFunction.EF_EASEINSINE
+		case InterpolationType.EASEOUTSINE:
+			return EasingFunction.EF_EASEOUTSINE
+		case InterpolationType.EASESINE:
+			return EasingFunction.EF_EASESINE
+		case InterpolationType.EASEINEXPO:
+			return EasingFunction.EF_EASEINEXPO
+		case InterpolationType.EASEOUTEXPO:
+			return EasingFunction.EF_EASEOUTEXPO
+		case InterpolationType.EASEEXPO:
+			return EasingFunction.EF_EASEEXPO
+		case InterpolationType.EASEINELASTIC:
+			return EasingFunction.EF_EASEINELASTIC
+		case InterpolationType.EASEOUTELASTIC:
+			return EasingFunction.EF_EASEOUTELASTIC
+		case InterpolationType.EASEELASTIC:
+			return EasingFunction.EF_EASEELASTIC
+		case InterpolationType.EASEINBOUNCE:
+			return EasingFunction.EF_EASEINBOUNCE
+		case InterpolationType.EASEOUTEBOUNCE:
+			return EasingFunction.EF_EASEOUTBOUNCE
+		case InterpolationType.EASEBOUNCE:
+			return EasingFunction.EF_EASEBOUNCE
+		default:
+			return EasingFunction.EF_LINEAR
+	}
 }

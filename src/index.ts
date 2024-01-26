@@ -67,5 +67,6 @@ export {
 	getEntitiesWithParent,
 	getEntityParent,
 	getPlayerPosition,
-	playSound
+	playSound,
+	getEasingFunctionFromInterpolation
 } from './helpers'
