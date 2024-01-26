@@ -1,4 +1,4 @@
-import { EasingFunction, Entity, Transform } from '@dcl/sdk/ecs'
+import { Entity, Transform } from '@dcl/sdk/ecs'
 import { Vector3, Quaternion } from '@dcl/sdk/math'
 
 /**
@@ -72,39 +72,66 @@ export function getWorldRotation(entity: Entity): Quaternion {
 /**
  * @public
  */
-export function interpolate(type: EasingFunction, t: number): number {
+export enum InterpolationType {
+  LINEAR = 'linear',
+
+  EASEINQUAD = 'easeinquad',
+  EASEOUTQUAD = 'easeoutquad',
+  EASEQUAD = 'easequad',
+
+  EASEINSINE = 'easeinsine',
+  EASEOUTSINE = 'easeoutsine',
+  EASESINE = 'easeinoutsine',
+
+  EASEINEXPO = 'easeinexpo',
+  EASEOUTEXPO = 'easeoutexpo',
+  EASEEXPO = 'easeinoutexpo',
+
+  EASEINELASTIC = 'easeinelastic',
+  EASEOUTELASTIC = 'easeoutelastic',
+  EASEELASTIC = 'easeinoutelastic',
+
+  EASEINBOUNCE = 'easeinbounce',
+  EASEOUTEBOUNCE = 'easeoutbounce',
+  EASEBOUNCE = 'easeinoutbounce',
+}
+
+/**
+ * @public
+ */
+export function interpolate(type: InterpolationType, t: number): number {
   switch (type) {
-    case EasingFunction.EF_LINEAR:
+    case InterpolationType.LINEAR:
       return InterpolateLinear(t)
-    case EasingFunction.EF_EASEINQUAD:
+    case InterpolationType.EASEINQUAD:
       return InterpolateEaseInQuad(t)
-    case EasingFunction.EF_EASEOUTQUAD:
+    case InterpolationType.EASEOUTQUAD:
       return InterpolateEaseOutQuad(t)
-    case EasingFunction.EF_EASEQUAD:
+    case InterpolationType.EASEQUAD:
       return InterpolateEaseQuad(t)
-	  case EasingFunction.EF_EASEINSINE:
+	  case InterpolationType.EASEINSINE:
 		  return InterpolateEaseInSine(t)
-    case EasingFunction.EF_EASEOUTSINE:
+    case InterpolationType.EASEOUTSINE:
       return InterpolateEaseOutSine(t)
-    case EasingFunction.EF_EASESINE:
+    case InterpolationType.EASESINE:
       return InterpolateEaseInOutSine(t)
-    case EasingFunction.EF_EASEINEXPO:
+    case InterpolationType.EASEINEXPO:
       return InterpolateEaseInExpo(t)
-    case EasingFunction.EF_EASEOUTEXPO:
+    case InterpolationType.EASEOUTEXPO:
       return InterpolateEaseOutExpo(t)
-    case EasingFunction.EF_EASEEXPO:
+    case InterpolationType.EASEEXPO:
       return InterpolateEaseInOutExpo(t)
-    case EasingFunction.EF_EASEINELASTIC:
+    case InterpolationType.EASEINELASTIC:
       return InterpolateEaseInElastic(t)
-    case EasingFunction.EF_EASEOUTELASTIC:
+    case InterpolationType.EASEOUTELASTIC:
       return InterpolateEaseOutElastic(t)
-    case EasingFunction.EF_EASEELASTIC:
+    case InterpolationType.EASEELASTIC:
       return InterpolateEaseInOutElastic(t)
-    case EasingFunction.EF_EASEINBOUNCE:
+    case InterpolationType.EASEINBOUNCE:
       return InterpolateEaseInBounce(t)
-    case EasingFunction.EF_EASEOUTBOUNCE:
+    case InterpolationType.EASEOUTEBOUNCE:
       return InterpolateEaseOutBounce(t)
-    case EasingFunction.EF_EASEBOUNCE:
+    case InterpolationType.EASEBOUNCE:
       return InterpolateEaseInOutBounce(t)
     default:
       return InterpolateLinear(t)

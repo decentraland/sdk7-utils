@@ -1,6 +1,8 @@
-import { engine, Entity, IEngine, EntityState, Tween, EasingFunction, TweenHelper } from '@dcl/sdk/ecs'
+import { engine, Entity, IEngine, EntityState, Tween, TweenHelper } from '@dcl/sdk/ecs'
 
 import { priority } from './priority'
+import { InterpolationType } from './math'
+import { getEasingFunctionFromInterpolation } from './helpers'
 
 export type OnFinishCallback = () => void
 export type Tweens = ReturnType<typeof createTweens>
@@ -51,14 +53,14 @@ function createTweens(targetEngine: IEngine) {
       start: Type['start'],
       end: Type['end'],
       duration: number,
-      easingFunction: EasingFunction = EasingFunction.EF_LINEAR,
+      interpolationType: InterpolationType = InterpolationType.LINEAR,
       onFinish?: OnFinishCallback
     ) {
       const currentTime = duration === 0 ? 1 : 0
       tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish })
       Tween.create(entity, {
         duration,
-        easingFunction,
+        easingFunction: getEasingFunctionFromInterpolation(interpolationType),
         currentTime,
         mode: Tween.Mode[mode]({ start: start as any, end: end as any })
       })
