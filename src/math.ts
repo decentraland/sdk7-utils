@@ -43,7 +43,7 @@ export function getWorldPosition(entity: Entity): Vector3 {
     return transform.position
   } else {
     let parentRotation = Transform.get(parent).rotation
-    return Vector3.add(getWorldPosition(parent), Vector3.rotate(transform.position, parentRotation))
+    return Vector3.add(getWorldPosition(parent), Vector3.rotate(transform.position, getWorldRotation(parent)))
   }
 }
 
