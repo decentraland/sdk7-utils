@@ -48,7 +48,7 @@ function createTweens(targetEngine: IEngine) {
     Mode extends keyof TweenHelper,
     Type extends Parameters<TweenHelper[Mode]>[0]
   >(mode: Mode) {
-    return function(
+    return function (
       entity: Entity,
       start: Type['start'],
       end: Type['end'],
@@ -58,7 +58,7 @@ function createTweens(targetEngine: IEngine) {
     ) {
       const currentTime = duration === 0 ? 1 : 0
       tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish })
-      Tween.create(entity, {
+      Tween.createOrReplace(entity, {
         duration,
         easingFunction: getEasingFunctionFromInterpolation(interpolationType),
         currentTime,

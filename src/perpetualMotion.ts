@@ -66,7 +66,7 @@ function createPerpetualMotions(targetEngine: IEngine) {
           break
       }
 
-      Tween.create(entity, {
+      Tween.createOrReplace(entity, {
         mode: Tween.Mode.Rotate({
           start: Quaternion.fromEulerDegrees(0, 0, 0),
           end: firstEnd
