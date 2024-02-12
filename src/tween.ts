@@ -1,125 +1,91 @@
-import { engine, Entity, IEngine, TransformType, Schemas, Transform, EntityState } from '@dcl/sdk/ecs'
-import { Scalar, Vector3, Quaternion } from '@dcl/sdk/math'
-import { InterpolationType, interpolate } from './math'
+import { engine, Entity, IEngine, EntityState, Tween, TweenHelper } from '@dcl/sdk/ecs'
+
 import { priority } from './priority'
+import { InterpolationType } from './math'
+import { getEasingFunctionFromInterpolation } from './helpers'
 
 export type OnFinishCallback = () => void
-
 export type Tweens = ReturnType<typeof createTweens>
+type TweenMap = Map<Entity, {
+  normalizedTime: number
+  callback: OnFinishCallback | undefined
+}>
 
 function createTweens(targetEngine: IEngine) {
-  const Vector3TweenSchema = {
-    start: Schemas.Vector3,
-    end: Schemas.Vector3,
-    interpolationType: Schemas.EnumString(InterpolationType, InterpolationType.LINEAR),
-    speed: Schemas.Float,
-    normalizedTime: Schemas.Float
-  }
-  const PositionTween = targetEngine.defineComponent('dcl.utils.PositionTween', Vector3TweenSchema)
-  const ScaleTween = targetEngine.defineComponent('dcl.utils.ScaleTween', Vector3TweenSchema)
-  const RotationTween = targetEngine.defineComponent('dcl.utils.RotationTween', {
-    start: Schemas.Quaternion,
-    end: Schemas.Quaternion,
-    interpolationType: Schemas.EnumString(InterpolationType, InterpolationType.LINEAR),
-    speed: Schemas.Float,
-    normalizedTime: Schemas.Float
-  })
+  const tweenMap: TweenMap = new Map()
 
-  type FinishCallbackMap = Map<Entity, OnFinishCallback | undefined>
+  function makeSystem(dt: number) {
+    const deadTweens = []
 
-  const positionFinishCbs: FinishCallbackMap = new Map()
-  const rotationFinishCbs: FinishCallbackMap = new Map()
-  const scaleFinishCbs: FinishCallbackMap = new Map()
-
-  function makeSystem(
-    tweenType: typeof PositionTween | typeof RotationTween,
-    callbacks: FinishCallbackMap,
-    transformer: (transform: TransformType, start: any, end: any, lerpTime: number) => void,
-  ) {
-    return function system(dt: number) {
-      const deadTweens = []
-
-      for (const entity of callbacks.keys()) {
-        if (targetEngine.getEntityState(entity) == EntityState.Removed || !tweenType.has(entity)) {
-          callbacks.delete(entity)
-          continue
-        }
-
-        const tween = tweenType.getMutable(entity)
-        tween.normalizedTime = Scalar.clamp(tween.normalizedTime + dt * tween.speed, 0, 1)
-        const lerpTime = interpolate(tween.interpolationType, tween.normalizedTime)
-
-        transformer(Transform.getMutable(entity), tween.start, tween.end, lerpTime)
-
-        if (tween.normalizedTime >= 1)
-          deadTweens.push(entity)
+    for (const [entity, tweenData] of tweenMap.entries()) {
+      if (targetEngine.getEntityState(entity) == EntityState.Removed || !Tween.has(entity)) {
+        tweenMap.delete(entity)
+        continue
       }
 
-      for (const entity of deadTweens) {
-        const callback = callbacks.get(entity)
-        tweenType.deleteFrom(entity)
-        callbacks.delete(entity)
-        if (callback)
-          callback()
+      const tween = Tween.get(entity)
+      tweenData.normalizedTime += dt
+
+      if (tweenData.normalizedTime >= (tween.duration / 1000)) {
+        deadTweens.push(entity)
       }
+    }
+
+    for (const entity of deadTweens) {
+      const callback = tweenMap.get(entity)?.callback
+      Tween.deleteFrom(entity)
+      tweenMap.delete(entity)
+      if (callback) callback()
     }
   }
 
-  function makeStop(tweenType: typeof PositionTween | typeof RotationTween, callbacks: FinishCallbackMap) {
-    return function(entity: Entity) {
-      tweenType.deleteFrom(entity)
-      callbacks.delete(entity)
-    }
+  function makeStop(entity: Entity) {
+    Tween.deleteFrom(entity)
+    tweenMap.delete(entity)
   }
 
-  function makeStart<V>(tweenType: any, callbacks: FinishCallbackMap) {
-    return function(
+  function makeStart<
+    Mode extends keyof TweenHelper,
+    Type extends Parameters<TweenHelper[Mode]>[0]
+  >(mode: Mode) {
+    return function (
       entity: Entity,
-      start: V,
-      end: V,
+      start: Type['start'],
+      end: Type['end'],
       duration: number,
       interpolationType: InterpolationType = InterpolationType.LINEAR,
       onFinish?: OnFinishCallback
     ) {
-      callbacks.set(entity, onFinish)
-      tweenType.createOrReplace(entity, {
-        start: start,
-        end: end,
-        speed: duration == 0 ? 0 : 1 / duration,
-        interpolationType: interpolationType,
-        normalizedTime: duration == 0 ? 1 : 0
-      })      
+      const currentTime = duration === 0 ? 1 : 0
+      tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish })
+      Tween.createOrReplace(entity, {
+        duration,
+        easingFunction: getEasingFunctionFromInterpolation(interpolationType),
+        currentTime,
+        mode: Tween.Mode[mode]({ start: start as any, end: end as any })
+      })
     }
   }
 
-  function makeGetOnFinishCallback(callbacks: FinishCallbackMap) {
-    return function (entity: Entity) {
-      if (!callbacks.has(entity))
-        throw new Error(`Entity ${entity} is not registered with tweens system`)
-      return callbacks.get(entity)
+  function makeGetOnFinishCallback(entity: Entity) {
+    if (!tweenMap.has(entity)) {
+      throw new Error(`Entity ${entity} is not registered with tweens system`)
     }
+    return tweenMap.get(entity)
   }
 
-  targetEngine.addSystem(makeSystem(PositionTween, positionFinishCbs, function(transform, start, end, time) {
-    transform.position = Vector3.lerp(start, end, time)
-  }), priority.TweenSystemPriority)
-  targetEngine.addSystem(makeSystem(RotationTween, rotationFinishCbs, function(transform, start, end, time) {
-    transform.rotation = Quaternion.slerp(start, end, time)
-  }), priority.TweenSystemPriority)
-  targetEngine.addSystem(makeSystem(ScaleTween, scaleFinishCbs, function(transform, start, end, time) {
-    transform.scale = Vector3.lerp(start, end, time)
-  }), priority.TweenSystemPriority)
+  targetEngine.addSystem(makeSystem, priority.TweenSystemPriority)
 
   return {
-    startTranslation: makeStart<Vector3>(PositionTween, positionFinishCbs),
-    stopTranslation: makeStop(PositionTween, positionFinishCbs),
-    startRotation: makeStart<Quaternion>(RotationTween, rotationFinishCbs),
-    stopRotation: makeStop(RotationTween, rotationFinishCbs),
-    startScaling: makeStart<Vector3>(ScaleTween, scaleFinishCbs),
-    stopScaling: makeStop(ScaleTween, scaleFinishCbs),
-    getTranslationOnFinishCallback: makeGetOnFinishCallback(positionFinishCbs),
-    getRotationOnFinishCallback: makeGetOnFinishCallback(rotationFinishCbs),
-    getScalingOnFinishCallback: makeGetOnFinishCallback(scaleFinishCbs)
+    startTranslation: makeStart('Move'),
+    stopTranslation: makeStop,
+    startRotation: makeStart('Rotate'),
+    stopRotation: makeStop,
+    startScaling: makeStart('Scale'),
+    stopScaling: makeStop,
+    getTranslationOnFinishCallback: makeGetOnFinishCallback,
+    getRotationOnFinishCallback: makeGetOnFinishCallback,
+    getScalingOnFinishCallback: makeGetOnFinishCallback
   }
 }
 

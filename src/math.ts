@@ -34,6 +34,7 @@ export function remap(
 export function getWorldPosition(entity: Entity): Vector3 {
   let transform = Transform.getOrNull(entity)
 
+
   if (!transform) return Vector3.zero()
 
   let parent = transform.parent
@@ -42,7 +43,7 @@ export function getWorldPosition(entity: Entity): Vector3 {
     return transform.position
   } else {
     let parentRotation = Transform.get(parent).rotation
-    return Vector3.add(getWorldPosition(parent), Vector3.rotate(transform.position, parentRotation))
+    return Vector3.add(getWorldPosition(parent), Vector3.rotate(transform.position, getWorldRotation(parent)))
   }
 }
 
@@ -54,7 +55,11 @@ export function getWorldPosition(entity: Entity): Vector3 {
  * @public
  */
 export function getWorldRotation(entity: Entity): Quaternion {
-  let transform = Transform.get(entity)
+  let transform = Transform.getOrNull(entity)
+
+  if (!transform)
+    return Quaternion.Identity()
+
   let parent = transform.parent
 
   if (!parent) {
@@ -182,7 +187,7 @@ function InterpolateEaseInOutExpo(t: number): number {
 
 function InterpolateEaseInElastic(t: number): number {
 	const c4 = (2 * Math.PI) / 3
-	
+
 	return t === 0
 			? 0
 			: t === 1
@@ -192,7 +197,7 @@ function InterpolateEaseInElastic(t: number): number {
 
 function InterpolateEaseOutElastic(t: number): number {
 	const c5 = (2 * Math.PI) / 3
-	
+
 	return t === 0
 			? 0
 			: t === 1
@@ -202,7 +207,7 @@ function InterpolateEaseOutElastic(t: number): number {
 
 function InterpolateEaseInOutElastic(t: number): number {
 	const c6 = (2 * Math.PI) / 4.5
-	
+
 	return t === 0
 			? 0
 			: t === 1
