@@ -34,8 +34,8 @@ export function remap(
 export function getWorldPosition(entity: Entity): Vector3 {
   let transform = Transform.getOrNull(entity)
 
-  if (!transform)
-    return Vector3.Zero()
+
+  if (!transform) return Vector3.zero()
 
   let parent = transform.parent
 
