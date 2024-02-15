@@ -26,7 +26,7 @@ function createTweens(targetEngine: IEngine) {
       const tween = Tween.get(entity)
       tweenData.normalizedTime += dt
 
-      if (tweenData.normalizedTime >= (tween.duration / 1000)) {
+      if (tweenData.normalizedTime >= tween.duration) {
         deadTweens.push(entity)
       }
     }
@@ -59,7 +59,7 @@ function createTweens(targetEngine: IEngine) {
       const currentTime = duration === 0 ? 1 : 0
       tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish })
       Tween.createOrReplace(entity, {
-        duration,
+        duration: duration * 1000,
         easingFunction: getEasingFunctionFromInterpolation(interpolationType),
         currentTime,
         mode: Tween.Mode[mode]({ start: start as any, end: end as any })
