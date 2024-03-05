@@ -37,7 +37,7 @@ function createTweens(targetEngine: IEngine) {
       }
 
       const tween = Tween.get(entity);
-      tweenData.normalizedTime += dt;
+      tweenData.normalizedTime += dt * 1000;
 
       if (tweenData.normalizedTime >= tween.duration) {
         deadTweens.push(entity);
