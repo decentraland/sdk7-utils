@@ -31,8 +31,7 @@
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
     "lib": [
-      "ES2020",
-      "DOM"
+      "ES2020"
     ],
     "types": [
       "@dcl/js-runtime",
