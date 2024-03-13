@@ -24,6 +24,11 @@ export {
 } from './tween'
 
 export {
+	Sounds,
+	sounds
+} from './audio'
+
+export {
 	PerpetualMotions,
 	perpetualMotions
 } from './perpetualMotion'
