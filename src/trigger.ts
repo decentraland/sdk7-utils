@@ -452,10 +452,11 @@ function createTriggers(targetEngine: IEngine) {
 
 	triggersInterface.addTrigger(
 		targetEngine.PlayerEntity, PLAYER_LAYER_ID, NO_LAYERS,
+		//(1.92/2) accounts that the player position is now at the feet, not the head
 		[{
 			type: 'box',
 			scale: { x: 0.65, y: 1.92, z: 0.65 },
-			position: { x: 0, y: 0.15, z: 0 }
+			position: { x: 0, y: (1.92/2), z: 0 }
 		}],
 		undefined, undefined, Color3.Green()
 	)
