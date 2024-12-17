@@ -1,7 +1,10 @@
-import { AudioSource, Entity, EntityState, IEngine, PBAudioSource, engine } from "@dcl/sdk/ecs";
+import { AudioSource, Entity, EntityState, PBAudioSource } from "@dcl/sdk/ecs";
 import { priority } from "./priority";
+import { getSDK } from "./sdk";
 
-export type Sounds = ReturnType<typeof createSounds>
+export type Sounds = ReturnType<typeof initSounds>
+const soundMap = new Map<Entity, { currentTime: number; end: number; }>()
+let soundsSystemStarted = false
 
 function assertSound(start: number, end: number) {
   if (start < 0) {
@@ -13,15 +16,19 @@ function assertSound(start: number, end: number) {
   }
 }
 
-function createSounds(targetEngine: IEngine) {
-  const soundMap = new Map<Entity, { currentTime: number; end: number; }>()
+function initSounds() {
+
+  const { engine } = getSDK()
+
+  if (soundsSystemStarted) return
+  soundsSystemStarted = true
 
   function makeSystem(dt: number) {
     const deadSounds = [];
 
     for (const [entity, soundData] of soundMap.entries()) {
       if (
-        targetEngine.getEntityState(entity) == EntityState.Removed ||
+        engine.getEntityState(entity) == EntityState.Removed ||
         !AudioSource.has(entity)
       ) {
         soundMap.delete(entity);
@@ -41,22 +48,20 @@ function createSounds(targetEngine: IEngine) {
     }
   }
 
-  function playSoundSegment(entity: Entity, value: PBAudioSource, start: number, end: number) {
-    assertSound(start, end)
-
-    soundMap.set(entity, { currentTime: start, end })
-    AudioSource.createOrReplace(entity, {
-      ...value,
-      playing: true,
-      currentTime: start
-    })
-  }
-
-  targetEngine.addSystem(makeSystem, priority.TweenSystemPriority)
-
-  return {
-    playSoundSegment,
-  }
+  engine.addSystem(makeSystem, priority.TweenSystemPriority)
 }
 
-export const sounds = createSounds(engine)
+export function playSoundSegment(entity: Entity, value: PBAudioSource, start: number, end: number) {
+
+  const { components: { AudioSource } } = getSDK()
+  
+  initSounds()
+  assertSound(start, end)
+
+  soundMap.set(entity, { currentTime: start, end })
+  AudioSource.createOrReplace(entity, {
+    ...value,
+    playing: true,
+    currentTime: start
+  })
+}

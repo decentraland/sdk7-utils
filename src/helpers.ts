@@ -1,6 +1,7 @@
-import { Entity, engine, Transform, AudioSource, EasingFunction } from '@dcl/sdk/ecs'
+import { Entity, EasingFunction } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import { InterpolationType } from './math';
+import { getSDK } from './sdk';
 
 /**
  * Returns an array of entities that all share the provided entity as parent.
@@ -12,6 +13,9 @@ import { InterpolationType } from './math';
 export function getEntitiesWithParent(
 	parent: Entity
 ): Entity[] {
+
+	const { engine, components: { Transform } } = getSDK()
+
 	const entitiesWithParent: Entity[] = [];
 
 	for (const [entity, transform] of engine.getEntitiesWith(Transform)) {
@@ -35,6 +39,9 @@ export function getEntitiesWithParent(
 export function getEntityParent(
 	child: Entity
 ): Entity {
+
+	const { engine, components: { Transform } } = getSDK()
+
 	const transform = Transform.getOrNull(child);
 	if (transform) {
 		return transform.parent as Entity;
@@ -51,6 +58,8 @@ export function getEntityParent(
  * @public
  */
 export function getPlayerPosition(): Vector3 {
+	const { engine, components: { Transform } } = getSDK()
+
 	return Transform.getOrNull(engine.PlayerEntity)?.position || Vector3.create()
 }
 
@@ -70,6 +79,8 @@ export function playSound(
 	loop: boolean = false,
 	position?: Vector3
 ) {
+	const { engine, components: { AudioSource, Transform } } = getSDK()
+
 	const entity = engine.addEntity()
 	AudioSource.create(entity, {
 		audioClipUrl: file,
