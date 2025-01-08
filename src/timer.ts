@@ -18,8 +18,12 @@ type TimerData = {
 const timers: Map<TimerId, TimerData> = new Map()
 
 let timerIdCounter = 0
+let timersSystemStarted = false
 
 function initTimers() {
+
+  if (timersSystemStarted) return
+  timersSystemStarted = true
 
   const { engine } = getSDK()
 
@@ -52,6 +56,7 @@ function initTimers() {
 
 }
 export function setTimeout(callback: Callback, milliseconds: number): TimerId {
+  initTimers()
   let timerId = timerIdCounter++
   timers.set(timerId, { callback: callback, interval: milliseconds, recurrent: false, accumulatedTime: 0 })
   return timerId
@@ -62,6 +67,7 @@ export function clearTimeout(timer: TimerId) {
 }
 
 export function setInterval(callback: Callback, milliseconds: number): TimerId {
+  initTimers()
   let timerId = timerIdCounter++
   timers.set(timerId, { callback: callback, interval: milliseconds, recurrent: true, accumulatedTime: 0 })
   return timerId
