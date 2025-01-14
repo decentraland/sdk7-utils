@@ -11,8 +11,13 @@ export enum AXIS {
   Z = 'z'
 }
 let PerpetualRotation: MapComponentDefinition<MapResult<{ velocity: ISchema<QuaternionType> }>>
+let perpetualMotionsStarted = false
 
 function initPerpetualMotions() {
+  
+  if (perpetualMotionsStarted) return
+  perpetualMotionsStarted = true
+
   const { engine, components: { Transform } } = getSDK()
 
   PerpetualRotation = engine.defineComponent('dcl.utils.PerpetualRotation', {
@@ -33,10 +38,12 @@ function initPerpetualMotions() {
 
 // Deprecated! Use smoothRotation instead
 export function startRotation(entity: Entity, velocity: Quaternion) {
+  initPerpetualMotions()
   PerpetualRotation.createOrReplace(entity, { velocity: velocity })
 }
 
 export function stopRotation(entity: Entity) {
+  initPerpetualMotions()
   const { components: { Tween, TweenSequence } } = getSDK()
 
   if (Tween.has(entity)) {
@@ -53,6 +60,7 @@ export function stopRotation(entity: Entity) {
 }
 
 export function smoothRotation(entity: Entity, duration: number, axis?: AXIS) {
+  initPerpetualMotions()
   const { components: { Tween, TweenSequence } } = getSDK()
 
   let firstEnd = Quaternion.fromEulerDegrees(0, 180, 0)
