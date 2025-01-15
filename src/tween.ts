@@ -8,6 +8,8 @@ import {
 
 import { priority } from "./priority";
 import { getSDK } from "./sdk";
+import { InterpolationType } from "./math";
+import { getEasingFunctionFromInterpolation } from "./helpers";
 
 export type OnFinishCallback = () => void;
 type TweenMap = Map<
@@ -88,7 +90,7 @@ function makeStop(entity: Entity) {
   tweenMap.delete(entity);
 }
 
-export function startTranslation(entity: Entity, startPos: Vector3Type, endPos: Vector3Type, duration: number, easingFunction = EasingFunction.EF_LINEAR, onFinish?: OnFinishCallback) {
+export function startTranslation(entity: Entity, startPos: Vector3Type, endPos: Vector3Type, duration: number, interpolationType = InterpolationType.LINEAR, onFinish?: OnFinishCallback) {
   const { components: { Tween } } = getSDK()
   initTweensSystem()
 
@@ -96,13 +98,13 @@ export function startTranslation(entity: Entity, startPos: Vector3Type, endPos: 
   tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
   Tween.createOrReplace(entity, {
     duration: duration * 1000,
-    easingFunction,
+    easingFunction: getEasingFunctionFromInterpolation(interpolationType),
     currentTime,
     mode: Tween.Mode.Move({ start: startPos, end: endPos }),
   })
 }
 
-export function startRotation(entity: Entity, startPos: QuaternionType, endPos: QuaternionType, duration: number, easingFunction = EasingFunction.EF_LINEAR, onFinish?: OnFinishCallback) {
+export function startRotation(entity: Entity, startPos: QuaternionType, endPos: QuaternionType, duration: number, interpolationType = InterpolationType.LINEAR, onFinish?: OnFinishCallback) {
   const { components: { Tween } } = getSDK()
   initTweensSystem()
 
@@ -110,13 +112,13 @@ export function startRotation(entity: Entity, startPos: QuaternionType, endPos: 
   tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
   Tween.createOrReplace(entity, {
     duration: duration * 1000,
-    easingFunction,
+    easingFunction: getEasingFunctionFromInterpolation(interpolationType),
     currentTime,
     mode: Tween.Mode.Rotate({ start: startPos, end: endPos }),
   })
 }
 
-export function startScaling(entity: Entity, startPos: Vector3Type, endPos: Vector3Type, duration: number, easingFunction = EasingFunction.EF_LINEAR, onFinish?: OnFinishCallback) {
+export function startScaling(entity: Entity, startPos: Vector3Type, endPos: Vector3Type, duration: number, interpolationType = InterpolationType.LINEAR, onFinish?: OnFinishCallback) {
   const { components: { Tween } } = getSDK()
   initTweensSystem()
 
@@ -124,7 +126,7 @@ export function startScaling(entity: Entity, startPos: Vector3Type, endPos: Vect
   tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
   Tween.createOrReplace(entity, {
     duration: duration * 1000,
-    easingFunction,
+    easingFunction: getEasingFunctionFromInterpolation(interpolationType),
     currentTime,
     mode: Tween.Mode.Scale({ start: startPos, end: endPos }),
   })
