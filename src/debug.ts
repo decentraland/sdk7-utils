@@ -67,7 +67,7 @@ export function addTestCube(
   noCollider?: boolean
 ): Entity {
 
-  const { engine, components: { Transform, MeshRenderer, Material, MeshCollider } } = getSDK()
+  const { engine, pointerEventsSystem, components: { Transform, MeshRenderer, Material, MeshCollider } } = getSDK()
 
 
   let cube = engine.addEntity()

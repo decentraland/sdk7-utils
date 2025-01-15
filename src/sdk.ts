@@ -1,10 +1,12 @@
-import { createInputSystem, IEngine, IInputSystem, createTweenSystem, TweenSystem } from '@dcl/sdk/ecs'
+import { createInputSystem, IEngine, IInputSystem, createTweenSystem, TweenSystem, createPointerEventsSystem, PointerEventsSystem } from '@dcl/sdk/ecs'
 import * as components from '@dcl/ecs/dist/components'
 
 type ICache = {
   engine: IEngine
   inputSystem: IInputSystem
   tweenSystem: TweenSystem
+  pointerEventsSystem: PointerEventsSystem
+  
   components: {
     Transform: ReturnType<typeof components.Transform>
     GltfContainer: ReturnType<typeof components.GltfContainer>
@@ -29,13 +31,14 @@ const cache: ICache = {} as ICache
 /**
  * @internal
  */
-export function setSDK(value: Omit<ICache, 'inputSystem' | 'components' | 'tweenSystem'>) {
+export function setSDK(value: Omit<ICache, 'inputSystem' | 'components' | 'tweenSystem' | 'pointerEventsSystem'>) {
   for (const key in value) {
     ;(cache as any)[key] = (value as any)[key]
   }
 
   cache.inputSystem = createInputSystem(value.engine)
   cache.tweenSystem = createTweenSystem(value.engine)
+  cache.pointerEventsSystem = createPointerEventsSystem(value.engine, cache.inputSystem)
 
   cache.components = {
       Transform: components.Transform(cache.engine),
