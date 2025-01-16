@@ -35,31 +35,27 @@ export function remap(
 export function getWorldPosition(entity: Entity, position = Vector3.Zero()): Vector3 {
   const { components: { Transform } } = getSDK()
 
-  const transform = Transform.get(entity)
-  //No transform
-  if (!transform) return Vector3.Zero()
+  let worldPosition: Vector3
+  let targetTransform = Transform.getOrNull(entity)
+  if(!targetTransform) return Vector3.Zero()
+  
+  worldPosition = targetTransform.position
 
-  let scaledPosition = {...transform.position}
-  //Scale relative position by parent scale
-  if (transform.parent) {
-      const parentTransform = Transform.get(transform.parent)
-      if(parentTransform) {
-          scaledPosition.x = scaledPosition.x * parentTransform.scale.x
-          scaledPosition.y = scaledPosition.y * parentTransform.scale.y
-          scaledPosition.z = scaledPosition.z * parentTransform.scale.z
-      }
+  while(targetTransform.parent){
+    let parentTransform = Transform.getOrNull(targetTransform.parent)
+    if(!parentTransform) return worldPosition
+
+    let scaledPosition = {
+      x: worldPosition.x * parentTransform.scale.x,
+      y: worldPosition.y * parentTransform.scale.y,
+      z: worldPosition.z * parentTransform.scale.z
+    }
+
+    worldPosition = Vector3.add(Vector3.rotate(scaledPosition, getWorldRotation(targetTransform.parent)), parentTransform.position)
+
+    targetTransform = parentTransform
   }
-  //Update position
-  position.x = position.x + scaledPosition.x
-  position.y = position.y + scaledPosition.y
-  position.z = position.z + scaledPosition.z
-
-  //No more parents
-  if (!transform.parent) return position;
-
-  //Get world position of the parent
-  return Vector3.add(getWorldPosition(transform.parent, position), Vector3.rotate(transform.position, getWorldRotation(transform.parent)))
-
+  return worldPosition
 }
 // export function getWorldPosition(entity: Entity): Vector3 {
 // 	const { components: { Transform } } = getSDK()
