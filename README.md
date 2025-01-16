@@ -234,7 +234,6 @@ The following example moves a box following a quadratic ease-in rate:
 
 ```ts
 export * from '@dcl/sdk'
-import { EasingFunction, } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
@@ -246,7 +245,7 @@ utils.tweens.startTranslation(
 	startPos,
 	endPos,
 	2,
-	EasingFunction.EF_LINEAR
+	utils.InterpolationType.EASEINQUAD
 )
 ```
 
@@ -300,7 +299,6 @@ The following example logs a message when the box finishes its movement.
 
 ```ts
 export * from '@dcl/sdk'
-import { EasingFunction, } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
@@ -310,7 +308,7 @@ utils.tweens.startTranslation(
 	Vector3.create(1, 1, 1),
 	Vector3.create(2, 1, 2),
 	2,
-	EasingFunction.EF_LINEAR,
+	utils.InterpolationType.LINEAR,
 	function () {
 		console.log('Tween is done')
 	}
@@ -1071,7 +1069,7 @@ The following example creates a box that changes its scale until clicked. Then i
 
 ```ts
 export * from '@dcl/sdk'
-import { engine, Transform, Entity, EasingFunction } from '@dcl/sdk/ecs'
+import { engine, Transform, Entity } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import * as utils from '@dcl-sdk/utils'
 
@@ -1104,7 +1102,7 @@ class ScaleAction implements utils.actions.IAction {
 			transform.scale,
 			this.scale,
 			1.5,
-			EasingFunction.EF_LINEAR,
+			utils.InterpolationType.LINEAR,
 			() => {
 				this.hasFinished = true
 			}
@@ -1135,7 +1133,7 @@ class MoveAction implements utils.actions.IAction {
 			transform.position,
 			this.position,
 			4,
-			EasingFunction.EF_LINEAR,
+			utils.InterpolationType.LINEAR,
 			() => {
 				this.hasFinished = true
 			}

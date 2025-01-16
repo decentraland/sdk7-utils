@@ -62,30 +62,33 @@ const debugEntities: Map<Entity, Array<Entity>> = new Map()
 
 let triggersSystemStarted = false
 
+export function defineTriggerComponent() {
+	const { engine } = getSDK()
+
+		Trigger = engine.defineComponent('dcl.utils.Trigger', {
+			active: Schemas.Boolean,
+			layerMask: Schemas.Int,
+			triggeredByMask: Schemas.Int,
+			areas: Schemas.Array(Schemas.OneOf({
+				box: Schemas.Map({
+					position: Schemas.Vector3,
+					scale: Schemas.Vector3
+				}),
+				sphere: Schemas.Map({
+					position: Schemas.Vector3,
+					radius: Schemas.Number
+				})
+			})),
+			debugColor: Schemas.Color3
+		})
+
+}
+
 function initTriggers() {
 	if (triggersSystemStarted) return
 	triggersSystemStarted = true
 
 	const { engine, components: { Material, MeshRenderer, Transform } } = getSDK()
-
-	Trigger = engine.defineComponent('dcl.utils.Trigger', {
-		active: Schemas.Boolean,
-		layerMask: Schemas.Int,
-		triggeredByMask: Schemas.Int,
-		areas: Schemas.Array(Schemas.OneOf({
-			box: Schemas.Map({
-				position: Schemas.Vector3,
-				scale: Schemas.Vector3
-			}),
-			sphere: Schemas.Map({
-				position: Schemas.Vector3,
-				radius: Schemas.Number
-			})
-		})),
-		debugColor: Schemas.Color3
-	})
-
-
 
 	function updateDebugDraw(enabled: boolean) {
 		if (!enabled)

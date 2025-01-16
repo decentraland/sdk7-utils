@@ -1,5 +1,6 @@
 import { IEngine } from '@dcl/sdk/ecs'
 import { setSDK } from './sdk'
+import { defineTriggerComponent } from './trigger'
   
   export let engine: IEngine
   
@@ -7,6 +8,7 @@ import { setSDK } from './sdk'
 	engine: IEngine,
   ) {
 	setSDK({ engine })
+	defineTriggerComponent()
   }
   
 export {
