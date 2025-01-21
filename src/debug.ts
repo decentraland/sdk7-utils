@@ -1,8 +1,8 @@
 import {
-  Entity, Transform, TextShape, Billboard, TransformType, MeshRenderer,
-  MeshCollider, Material, pointerEventsSystem, engine, EventSystemCallback, InputAction
+  Entity, TransformType, pointerEventsSystem, EventSystemCallback, InputAction
 } from '@dcl/sdk/ecs'
 import { Vector3, Color4 } from '@dcl/sdk/math'
+import { getSDK } from './sdk'
 
 /**
  * Creates a text label spatially linked to an entity
@@ -24,6 +24,9 @@ export function addLabel(
   size?: number,
   textOffset?: Vector3
 ): Entity {
+
+  const { engine, components: { Transform, Billboard, TextShape } } = getSDK()
+
   let label = engine.addEntity()
 
   Transform.create(label, {
@@ -63,6 +66,10 @@ export function addTestCube(
   sphere?: boolean,
   noCollider?: boolean
 ): Entity {
+
+  const { engine, pointerEventsSystem, components: { Transform, MeshRenderer, Material, MeshCollider } } = getSDK()
+
+
   let cube = engine.addEntity()
 
   Transform.create(cube, transform)

@@ -2,6 +2,7 @@
 
 This library includes a number of helpful pre-built tools that offer simple solutions to common scenarios that you're likely to run into.
 
+- [Init Library](#init-library)
 - [Debug helpers](#debug-helpers)
   - [Label](#label)
   - [Cube](#cube)
@@ -46,6 +47,7 @@ This library includes a number of helpful pre-built tools that offer simple solu
 
 To use any of the helpers provided by the utils library you must install it in your Decentrland project.
 
+
 ### Via the Decentraland Editor
 
 Make sure you've [installed the Decentraland editor](https://docs.decentraland.org/creator/development-guide/sdk7/installation-guide/#the-decentraland-editor).
@@ -85,6 +87,25 @@ import * as utils from '@dcl-sdk/utils'
 ```
 
 4. In your TypeScript file, write `utils.` and let the suggestions of your IDE show the available helpers.
+
+
+## Init library
+
+Since version 2.0.0 it is needed to initialize the library from scene `index.ts` file.
+
+Place the call to `initLibrary()` outside the scene `main()` function.
+
+index.ts:
+```ts
+import { engine } from '@dcl/sdk/ecs'
+import * as utils from '@dcl-sdk/utils'
+
+utils.initLibrary(engine)
+
+export function main() {
+	//scene code goes here
+}
+```
 
 ## Debug helpers
 
@@ -646,14 +667,14 @@ pointerEventsSystem.onPointerDown(
 Use `utils.triggers.addTrigger` to add a trigger area to an entity. It has the following arguments:
 
 - `entity`: Trigger's owner entity. Trigger area's coordinates depend on `entity`'s Transform component.
-- `layerMask`: Specificies layers to which this trigger belongs to. The library provides eight layers: `utils.LAYER_1`, ... `utils.LAYER_8`. If an entity is supposed to belong to multiple layers, for example layer 1 and layer 3, set `layerMask` to a combination of layer constants separated by `|` (bitwise OR): `utils.LAYER_1 | utils.LAYER_3`. If an entity is supposed to belong to all 8 layers, set `layerMask` to `utils.ALL_LAYERS`. Default value of `layerMask` is `utils.NO_LAYERS`, i.e. an entity does not belong to any layer and won't be able to trigger other entities (it still can be triggered by others, see `triggeredByMask` below).
-- `triggeredByMask`: Specifies layers which can trigger an entity. For example, if an entity is supposed to be triggered by entities that belong to either or both layer 2 and layer 4, set `triggeredByMask` to `utils.LAYER_2 | utils.LAYER_4`. Default value of `triggeredByMask` is `utils.NO_LAYERS`, i.e. an entity won't be triggered by other entities at all. When set to `utils.ALL_LAYERS` an entity will be triggered by all entities that belong to at least one layer.
+- `layerMask`: Specificies layers to which this trigger belongs to. The library provides eight layers: `utils.triggers.LAYER_1`, ... `utils.triggers.LAYER_8`. If an entity is supposed to belong to multiple layers, for example layer 1 and layer 3, set `layerMask` to a combination of layer constants separated by `|` (bitwise OR): `utils.triggers.LAYER_1 | utils.triggers.LAYER_3`. If an entity is supposed to belong to all 8 layers, set `layerMask` to `utils.triggers.ALL_LAYERS`. Default value of `layerMask` is `utils.triggers.NO_LAYERS`, i.e. an entity does not belong to any layer and won't be able to trigger other entities (it still can be triggered by others, see `triggeredByMask` below).
+- `triggeredByMask`: Specifies layers which can trigger an entity. For example, if an entity is supposed to be triggered by entities that belong to either or both layer 2 and layer 4, set `triggeredByMask` to `utils.triggers.LAYER_2 | utils.triggers.LAYER_4`. Default value of `triggeredByMask` is `utils.triggers.NO_LAYERS`, i.e. an entity won't be triggered by other entities at all. When set to `utils.triggers.ALL_LAYERS` an entity will be triggered by all entities that belong to at least one layer.
 - `areas`: An array of shapes (either boxes or spheres) which describes trigger area. A box is indicated by the object `{type: 'box', position?: Vector3, scale?: Vector3}`, and a sphere by the object `{type: 'sphere', position?: Vector3, radius?: number}`. `position`, `scale` and `radius` fields are optional and default to `{x: 0, y: 0, z: 0}`, `{x: 1, y: 1, z: 1}` and `1` respectively. Please note that box's or sphere's coordinates are relative to `entity`'s Transform. Additionally, box areas always stay axis-aligned, disregarding `entity`'s rotation.
 - `onEnterCallback`: This function will be called when a trigger's area intersects with an area of another, layer-compatible trigger. It will receive an entity which owns intersecting trigger as a single argument.
 - `onExitCallback`: This function will be called when a trigger's area no longer intersects with an area of another trigger. It will receive an entity which owns formerly intersecting trigger as a single argument.
 - `debugColor`: Defines a color of trigger area's shapes when debug visualization is active: call `utils.triggers.enableDebugDraw(true)` to enable it.
 
-The following example creates a trigger that changes its position randomly when triggered by the player. Please note that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape with `layerMask` set to `utils.LAYER_1` and `triggeredByMask` set to `utils.NO_LAYERS`.
+The following example creates a trigger that changes its position randomly when triggered by the player. Please note that the library automatically creates a trigger area for the player entity: it's a box closely matching avatar's shape with `layerMask` set to `utils.triggers.LAYER_1` and `triggeredByMask` set to `utils.triggers.NO_LAYERS`.
 
 ```ts
 export * from '@dcl/sdk'
@@ -672,8 +693,8 @@ const box = utils.addTestCube(
 
 utils.triggers.addTrigger(
 	box,
-	utils.NO_LAYERS,
-	utils.LAYER_1,
+	utils.triggers.NO_LAYERS,
+	utils.triggers.LAYER_1,
 	[{ type: 'box' }],
 	function (otherEntity) {
 		console.log(`triggered by ${otherEntity}!`)
@@ -708,8 +729,8 @@ Transform.create(triggerEntity)
 
 utils.triggers.oneTimeTrigger(
 	triggerEntity,
-	utils.NO_LAYERS,
-	utils.LAYER_1,
+	utils.triggers.NO_LAYERS,
+	utils.triggers.LAYER_1,
 	[
 		{
 			type: 'box',
@@ -744,9 +765,9 @@ import * as utils from '@dcl-sdk/utils'
 import { Color4 } from '@dcl/sdk/math'
 
 // Define layers
-const FOOD_LAYER = utils.LAYER_1
-const MOUSE_LAYER = utils.LAYER_2
-const CAT_LAYER = utils.LAYER_3
+const FOOD_LAYER = utils.triggers.LAYER_1
+const MOUSE_LAYER = utils.triggers.LAYER_2
+const CAT_LAYER = utils.triggers.LAYER_3
 
 // Remove default trigger from a player so that they don't interfere
 utils.triggers.removeTrigger(engine.PlayerEntity)
@@ -876,6 +897,7 @@ console.log(result)
 ### World position
 
 If an entity is parented to another entity, or to the player, then its Transform position will be relative to its parent. To find what its global position is, taking into account any parents, use `utils.getWorldPosition`. It returns a `Vector3` object, with the resulting position of adding the given entity and all its chain of parents.
+This calculation takes into account position, rotation and scale from parent entities.
 
 The following example sets a cube as a child of another cube, and logs its world position.
 
@@ -884,7 +906,11 @@ export * from '@dcl/sdk'
 import * as utils from '@dcl-sdk/utils'
 import { Transform } from '@dcl/sdk/ecs'
 
-const cube = utils.addTestCube({ position: { x: 1, y: 1, z: 1 } })
+const cube = utils.addTestCube({ 
+    position: { x: 1, y: 1, z: 1 }, 
+    scale: { x: 1, y: 2, z: 1 }, 
+    rotation: Quaternion.fromEulerDegrees(45, 0, 0)
+  })
 const childCube = utils.addTestCube({ position: { x: 0, y: 1, z: 0 } })
 Transform.getMutable(childCube).parent = cube
 
@@ -1076,7 +1102,7 @@ class ScaleAction implements utils.actions.IAction {
 			transform.scale,
 			this.scale,
 			1.5,
-			utils.InterpolationType.EASEINQUAD,
+			utils.InterpolationType.LINEAR,
 			() => {
 				this.hasFinished = true
 			}

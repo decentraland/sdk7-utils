@@ -1,3 +1,16 @@
+import { IEngine } from '@dcl/sdk/ecs'
+import { setSDK } from './sdk'
+import { defineTriggerComponent } from './trigger'
+  
+  export let engine: IEngine
+  
+  export function initLibrary(
+	engine: IEngine,
+  ) {
+	setSDK({ engine })
+	defineTriggerComponent()
+  }
+  
 export {
 	InterpolationType,
 	remap,
@@ -11,54 +24,19 @@ export {
 	addTestCube
 } from './debug'
 
-export {
-	ToggleState,
-	ToggleCallback,
-	Toggles,
-	toggles
-} from './toggle'
+export * as toggles from './toggle'
 
-export {
-	Tweens,
-	tweens
-} from './tween'
+export * as tweens from './tween'
 
-export {
-	Sounds,
-	sounds
-} from './audio'
+export * as audio from './audio'
 
-export {
-	PerpetualMotions,
-	perpetualMotions
-} from './perpetualMotion'
+export * as perpetualMotions from './perpetualMotion'
 
-export {
-	Paths,
-	paths
-} from './path'
+export * as paths from './path'
 
-export {
-	Triggers,
-	triggers,
-	LAYER_1,
-	LAYER_2,
-	LAYER_3,
-	LAYER_4,
-	LAYER_5,
-	LAYER_6,
-	LAYER_7,
-	LAYER_8,
-	ALL_LAYERS,
-	NO_LAYERS,
-	PLAYER_LAYER_ID
-} from './trigger'
+export * as triggers from './trigger'
 
-export {
-	Timers,
-	TimerId,
-	timers
-} from './timer'
+export * as timers from './timer'
 
 export {
 	actions

@@ -1,5 +1,6 @@
-import { Entity, Transform } from '@dcl/sdk/ecs'
+import { Entity } from '@dcl/sdk/ecs'
 import { Vector3, Quaternion } from '@dcl/sdk/math'
+import { getSDK } from './sdk'
 
 /**
  * Remaps a value from one range of values to its equivalent, scaled in proportion to another range of values, using maximum and minimum.
@@ -30,22 +31,48 @@ export function remap(
  * @param entity - Entity to calculate position
  * @returns The Entity's global position relative to the scene's origin
  * @public
- */
-export function getWorldPosition(entity: Entity): Vector3 {
-  let transform = Transform.getOrNull(entity)
+*/
+export function getWorldPosition(entity: Entity, position = Vector3.Zero()): Vector3 {
+  const { components: { Transform } } = getSDK()
 
+  let worldPosition: Vector3
+  let targetTransform = Transform.getOrNull(entity)
+  if(!targetTransform) return Vector3.Zero()
+  
+  worldPosition = targetTransform.position
 
-  if (!transform) return Vector3.Zero()
+  while(targetTransform.parent){
+    let parentTransform = Transform.getOrNull(targetTransform.parent)
+    if(!parentTransform) return worldPosition
 
-  let parent = transform.parent
+    let scaledPosition = {
+      x: worldPosition.x * parentTransform.scale.x,
+      y: worldPosition.y * parentTransform.scale.y,
+      z: worldPosition.z * parentTransform.scale.z
+    }
 
-  if (!parent) {
-    return transform.position
-  } else {
-    let parentRotation = Transform.get(parent).rotation
-    return Vector3.add(getWorldPosition(parent), Vector3.rotate(transform.position, getWorldRotation(parent)))
+    worldPosition = Vector3.add(Vector3.rotate(scaledPosition, getWorldRotation(targetTransform.parent)), parentTransform.position)
+
+    targetTransform = parentTransform
   }
+  return worldPosition
 }
+// export function getWorldPosition(entity: Entity): Vector3 {
+// 	const { components: { Transform } } = getSDK()
+
+//   let transform = Transform.getOrNull(entity)
+
+
+//   if (!transform) return Vector3.Zero()
+
+//   let parent = transform.parent
+
+//   if (!parent) {
+//     return transform.position
+//   } else {
+//     return Vector3.add(getWorldPosition(parent), Vector3.rotate(transform.position, getWorldRotation(parent)))
+//   }
+// }
 
 /**
  * Returns the position of an entity that is a child of other entities, relative to the scene instead of relative to the parent. Returns a Vector3.
@@ -55,6 +82,8 @@ export function getWorldPosition(entity: Entity): Vector3 {
  * @public
  */
 export function getWorldRotation(entity: Entity): Quaternion {
+	const { components: { Transform } } = getSDK()
+  
   let transform = Transform.getOrNull(entity)
 
   if (!transform)
@@ -68,6 +97,7 @@ export function getWorldRotation(entity: Entity): Quaternion {
     return Quaternion.multiply(transform.rotation, getWorldRotation(parent))
   }
 }
+
 
 /**
  * @public

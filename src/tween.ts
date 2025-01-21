@@ -1,35 +1,45 @@
 import {
-  engine,
+  EasingFunction,
   Entity,
-  IEngine,
   EntityState,
-  Tween,
-  TweenHelper,
+  QuaternionType,
+  Vector3Type,
 } from "@dcl/sdk/ecs";
 
 import { priority } from "./priority";
+import { getSDK } from "./sdk";
 import { InterpolationType } from "./math";
 import { getEasingFunctionFromInterpolation } from "./helpers";
 
 export type OnFinishCallback = () => void;
-export type Tweens = ReturnType<typeof createTweens>;
 type TweenMap = Map<
   Entity,
   {
     normalizedTime: number;
-    callback: OnFinishCallback | undefined;
+    callback: OnFinishCallback | undefined
   }
->;
+>
 
-function createTweens(targetEngine: IEngine) {
-  const tweenMap: TweenMap = new Map();
+const tweenMap: TweenMap = new Map();
+let tweenSystemStarted = false
+
+export function initTweensSystem() {
+
+  if (tweenSystemStarted) return
+  tweenSystemStarted = true
+
+  const {
+    engine,
+    components: { Tween }
+  } = getSDK()
+
 
   function makeSystem(dt: number) {
     const deadTweens = [];
 
     for (const [entity, tweenData] of tweenMap.entries()) {
       if (
-        targetEngine.getEntityState(entity) == EntityState.Removed ||
+        engine.getEntityState(entity) == EntityState.Removed ||
         !Tween.has(entity)
       ) {
         tweenMap.delete(entity);
@@ -52,54 +62,84 @@ function createTweens(targetEngine: IEngine) {
     }
   }
 
-  function makeStop(entity: Entity) {
-    Tween.deleteFrom(entity);
-    tweenMap.delete(entity);
-  }
-
-  function makeStart<
-    Mode extends keyof TweenHelper,
-    Type extends Parameters<TweenHelper[Mode]>[0]
-  >(mode: Mode) {
-    return function (
-      entity: Entity,
-      start: Type["start"],
-      end: Type["end"],
-      duration: number,
-      interpolationType: InterpolationType = InterpolationType.LINEAR,
-      onFinish?: OnFinishCallback
-    ) {
-      const currentTime = duration === 0 ? 1 : 0;
-      tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
-      Tween.createOrReplace(entity, {
-        duration: duration * 1000,
-        easingFunction: getEasingFunctionFromInterpolation(interpolationType),
-        currentTime,
-        mode: Tween.Mode[mode]({ start: start as any, end: end as any }),
-      });
-    };
-  }
-
-  function makeGetOnFinishCallback(entity: Entity) {
-    if (!tweenMap.has(entity)) {
-      throw new Error(`Entity ${entity} is not registered with tweens system`);
-    }
-    return tweenMap.get(entity);
-  }
-
-  targetEngine.addSystem(makeSystem, priority.TweenSystemPriority);
-
-  return {
-    startTranslation: makeStart("Move"),
-    stopTranslation: makeStop,
-    startRotation: makeStart("Rotate"),
-    stopRotation: makeStop,
-    startScaling: makeStart("Scale"),
-    stopScaling: makeStop,
-    getTranslationOnFinishCallback: makeGetOnFinishCallback,
-    getRotationOnFinishCallback: makeGetOnFinishCallback,
-    getScalingOnFinishCallback: makeGetOnFinishCallback,
-  };
+  engine.addSystem(makeSystem, priority.TweenSystemPriority);
 }
 
-export const tweens = createTweens(engine);
+function makeGetOnFinishCallback(entity: Entity) {
+  if (!tweenMap.has(entity)) {
+    throw new Error(`Entity ${entity} is not registered with tweens system`);
+  }
+  return tweenMap.get(entity);
+}
+
+export function getTranslationOnFinishCallback(entity: Entity) {
+  makeGetOnFinishCallback(entity)
+}
+
+export function getRotationOnFinishCallback(entity: Entity) {
+  makeGetOnFinishCallback(entity)
+}
+
+export function getScalingOnFinishCallback(entity: Entity) {
+  makeGetOnFinishCallback(entity)
+}
+
+function makeStop(entity: Entity) {
+  const { components: { Tween } } = getSDK()
+  Tween.deleteFrom(entity);
+  tweenMap.delete(entity);
+}
+
+export function startTranslation(entity: Entity, startPos: Vector3Type, endPos: Vector3Type, duration: number, interpolationType = InterpolationType.LINEAR, onFinish?: OnFinishCallback) {
+  const { components: { Tween } } = getSDK()
+  initTweensSystem()
+
+  const currentTime = duration === 0 ? 1 : 0;
+  tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
+  Tween.createOrReplace(entity, {
+    duration: duration * 1000,
+    easingFunction: getEasingFunctionFromInterpolation(interpolationType),
+    currentTime,
+    mode: Tween.Mode.Move({ start: startPos, end: endPos }),
+  })
+}
+
+export function startRotation(entity: Entity, startPos: QuaternionType, endPos: QuaternionType, duration: number, interpolationType = InterpolationType.LINEAR, onFinish?: OnFinishCallback) {
+  const { components: { Tween } } = getSDK()
+  initTweensSystem()
+
+  const currentTime = duration === 0 ? 1 : 0;
+  tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
+  Tween.createOrReplace(entity, {
+    duration: duration * 1000,
+    easingFunction: getEasingFunctionFromInterpolation(interpolationType),
+    currentTime,
+    mode: Tween.Mode.Rotate({ start: startPos, end: endPos }),
+  })
+}
+
+export function startScaling(entity: Entity, startPos: Vector3Type, endPos: Vector3Type, duration: number, interpolationType = InterpolationType.LINEAR, onFinish?: OnFinishCallback) {
+  const { components: { Tween } } = getSDK()
+  initTweensSystem()
+
+  const currentTime = duration === 0 ? 1 : 0;
+  tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
+  Tween.createOrReplace(entity, {
+    duration: duration * 1000,
+    easingFunction: getEasingFunctionFromInterpolation(interpolationType),
+    currentTime,
+    mode: Tween.Mode.Scale({ start: startPos, end: endPos }),
+  })
+}
+
+export function stopTranslation(entity: Entity) {
+  makeStop(entity)
+}
+
+export function stopRotation(entity: Entity) {
+  makeStop(entity)
+}
+
+export function stopScaling(entity: Entity) {
+  makeStop(entity)
+}

@@ -1,7 +1,8 @@
-import { engine, Entity, IEngine, MeshRenderer, Schemas, Transform, Material, DeepReadonly, EntityState } from '@dcl/sdk/ecs'
+import { Entity, Schemas, DeepReadonly, EntityState, Color3Type, ISchema, MapComponentDefinition, MapResult, Vector3Type } from '@dcl/sdk/ecs'
 import { Vector3, Color4, Color3 } from '@dcl/sdk/math'
 import { getWorldPosition, getWorldRotation, areAABBIntersecting, areAABBSphereIntersecting, areSpheresIntersecting } from './math'
 import { priority } from './priority'
+import { getSDK } from './sdk'
 
 export const LAYER_1 = 1
 export const LAYER_2 = 2
@@ -41,54 +42,67 @@ export type TriggerArea = { $case: 'box', value: TriggerBoxArea } | { $case: 'sp
 type OnTriggerEnterCallback = (entity: Entity) => void
 type OnTriggerExitCallback = (entity: Entity) => void
 
-export type Triggers = ReturnType<typeof createTriggers>
+export type Triggers = ReturnType<typeof initTriggers>
+let Trigger: MapComponentDefinition<MapResult<{ active: ISchema<boolean>; layerMask: ISchema<number>; triggeredByMask: ISchema<number>; areas: ISchema<({ readonly $case: "box"; readonly value: MapResult<{ position: ISchema<Vector3Type>; scale: ISchema<Vector3Type> }> } | { readonly $case: "sphere"; readonly value: MapResult<{ position: ISchema<Vector3Type>; radius: ISchema<number> }> })[]>; debugColor: ISchema<Color3Type> }>>
 
-function createTriggers(targetEngine: IEngine) {
-	const Trigger = engine.defineComponent('dcl.utils.Trigger', {
-		active: Schemas.Boolean,
-		layerMask: Schemas.Int,
-		triggeredByMask: Schemas.Int,
-		areas: Schemas.Array(Schemas.OneOf({
-			box: Schemas.Map({
-				position: Schemas.Vector3,
-				scale: Schemas.Vector3
-			}),
-			sphere: Schemas.Map({
-				position: Schemas.Vector3,
-				radius: Schemas.Number
-			})
-		})),
-		debugColor: Schemas.Color3
-	})
+type TriggerType = {
+	active: boolean,
+	layerMask: number,
+	triggeredByMask: number,
+	areas: Array<TriggerArea>,
+	debugColor: Color3
+}
 
-	type TriggerType = {
-		active: boolean,
-		layerMask: number,
-		triggeredByMask: number,
-		areas: Array<TriggerArea>,
-		debugColor: Color3
-	}
+const triggerEnterCbs: Map<Entity, OnTriggerEnterCallback | undefined> = new Map()
+const triggerExitCbs: Map<Entity, OnTriggerExitCallback | undefined> = new Map()
 
-	const triggerEnterCbs: Map<Entity, OnTriggerEnterCallback | undefined> = new Map()
-	const triggerExitCbs: Map<Entity, OnTriggerExitCallback | undefined> = new Map()
+let debugDraw = false
+const activeCollisions: Map<Entity, Set<Entity>> = new Map()
+const debugEntities: Map<Entity, Array<Entity>> = new Map()
 
-	let debugDraw = false
-	const activeCollisions: Map<Entity, Set<Entity>> = new Map()
-	const debugEntities: Map<Entity, Array<Entity>> = new Map()
+let triggersSystemStarted = false
+
+export function defineTriggerComponent() {
+	const { engine } = getSDK()
+
+		Trigger = engine.defineComponent('dcl.utils.Trigger.version.2', {
+			active: Schemas.Boolean,
+			layerMask: Schemas.Int,
+			triggeredByMask: Schemas.Int,
+			areas: Schemas.Array(Schemas.OneOf({
+				box: Schemas.Map({
+					position: Schemas.Vector3,
+					scale: Schemas.Vector3
+				}),
+				sphere: Schemas.Map({
+					position: Schemas.Vector3,
+					radius: Schemas.Number
+				})
+			})),
+			debugColor: Schemas.Color3
+		})
+
+}
+
+function initTriggers() {
+	if (triggersSystemStarted) return
+	triggersSystemStarted = true
+
+	const { engine, components: { Material, MeshRenderer, Transform } } = getSDK()
 
 	function updateDebugDraw(enabled: boolean) {
 		if (!enabled)
 			return
 
-		for (const [entity, trigger] of targetEngine.getEntitiesWith(Trigger, Transform)) {
+		for (const [entity, trigger] of engine.getEntitiesWith(Trigger, Transform)) {
 			let shapes = debugEntities.get(entity)!
 
 			const areaCount = trigger.areas.length
 			while (shapes.length > areaCount) {
-				targetEngine.removeEntity(shapes.pop()!)
+				engine.removeEntity(shapes.pop()!)
 			}
 			while (shapes.length < areaCount) {
-				shapes.push(targetEngine.addEntity())
+				shapes.push(engine.addEntity())
 			}
 
 			const worldPosition = getWorldPosition(entity)
@@ -185,8 +199,8 @@ function createTriggers(targetEngine: IEngine) {
 
 		if (trigger.triggeredByMask == PLAYER_LAYER_ID) {
 			// check just player 
-			const playerEntity = targetEngine.PlayerEntity
-			const playerTrigger = Trigger.get(targetEngine.PlayerEntity)
+			const playerEntity = engine.PlayerEntity
+			const playerTrigger = Trigger.get(engine.PlayerEntity)
 
 			if (playerEntity == entity)
 				return collisions
@@ -204,7 +218,7 @@ function createTriggers(targetEngine: IEngine) {
 			}
 		} else {
 			// iterate over full list of triggers
-			for (const [otherEntity, otherTrigger] of targetEngine.getEntitiesWith(Trigger, Transform)) {
+			for (const [otherEntity, otherTrigger] of engine.getEntitiesWith(Trigger, Transform)) {
 				if (otherEntity == entity)
 					continue
 
@@ -234,9 +248,9 @@ function createTriggers(targetEngine: IEngine) {
 		const shapeWorldPositions: Map<Entity, Array<Vector3>> = new Map()
 
 		for (const entity of activeCollisions.keys()) {
-			if (targetEngine.getEntityState(entity) == EntityState.Removed || !Trigger.has(entity)) {
+			if (engine.getEntityState(entity) == EntityState.Removed || !Trigger.has(entity)) {
 				for (const debugEntity of debugEntities.get(entity)!)
-					targetEngine.removeEntity(debugEntity)
+					engine.removeEntity(debugEntity)
 
 				for (const collisions of activeCollisions.values()) {
 					if (collisions.has(entity))
@@ -296,175 +310,203 @@ function createTriggers(targetEngine: IEngine) {
 		updateDebugDraw(debugDraw)
 	}
 
-	targetEngine.addSystem(system, priority.TriggerSystemPriority)
+	engine.addSystem(system, priority.TriggerSystemPriority)
 
-	function triggerAreasFromSpec(areas?: Array<TriggerAreaSpec>) {
-		if (!areas)
-			areas = [{ type: 'box' }]
 
-		const triggerAreas: Array<TriggerArea> = []
 
-		for (const area of areas) {
-			if (area.type == 'box') {
-				triggerAreas.push({
-					$case: 'box',
-					value: {
-						position: area.position ? area.position : Vector3.Zero(),
-						scale: area.scale ? area.scale : Vector3.One()
-					}
-				})
-			} else {
-				triggerAreas.push({
-					$case: 'sphere',
-					value: {
-						position: area.position ? area.position : Vector3.Zero(),
-						radius: area.radius ? area.radius : 1
-					}
-				})
-			}
-		}
-		return triggerAreas
-	}
-
-	const triggersInterface = {
-		addTrigger(
-			entity: Entity,
-			layerMask: number = NO_LAYERS,
-			triggeredByMask: number = NO_LAYERS,
-			areas?: Array<TriggerAreaSpec>,
-			onEnterCallback?: OnTriggerEnterCallback,
-			onExitCallback?: OnTriggerExitCallback,
-			debugColor?: Color3
-		) {
-			if (layerMask < 0 || layerMask > ALL_LAYERS || !Number.isInteger(layerMask))
-				throw new Error(`Bad layerMask: ${layerMask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
-
-			if (triggeredByMask < 0 || triggeredByMask > ALL_LAYERS || !Number.isInteger(triggeredByMask))
-				throw new Error(`Bad triggeredByMask: ${triggeredByMask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
-
-			debugEntities.set(entity, [])
-			activeCollisions.set(entity, new Set())
-			triggerEnterCbs.set(entity, onEnterCallback)
-			triggerExitCbs.set(entity, onExitCallback)
-
-			Trigger.createOrReplace(entity, {
-				active: true,
-				layerMask: layerMask,
-				triggeredByMask: triggeredByMask,
-				areas: triggerAreasFromSpec(areas),
-				debugColor: debugColor ? debugColor : Color3.Red()
-			})
-		},
-		removeTrigger(entity: Entity) {
-			const collisions = activeCollisions.get(entity)!
-			const callback = triggerExitCbs.get(entity)
-
-			for (const debugEntity of debugEntities.get(entity)!)
-				targetEngine.removeEntity(debugEntity)
-
-			debugEntities.delete(entity)
-			activeCollisions.delete(entity)
-			triggerEnterCbs.delete(entity)
-			triggerExitCbs.delete(entity)
-			Trigger.deleteFrom(entity)
-
-			const collidingEntities = []
-			for (const [otherEntity, otherEntityCollisions] of activeCollisions) {
-				if (otherEntityCollisions.has(entity)) {
-					otherEntityCollisions.delete(entity)
-					collidingEntities.push(otherEntity)
-				}
-			}
-
-			if (callback) {
-				for (const collision of collisions)
-					callback(collision)
-			}
-
-			for (const otherEntity of collidingEntities) {
-				const callback = triggerExitCbs.get(otherEntity)
-				if (callback)
-					callback(entity)
-			}
-		},
-		oneTimeTrigger(
-			entity: Entity,
-			layerMask: number = NO_LAYERS,
-			triggeredByMask: number = NO_LAYERS,
-			areas?: Array<TriggerAreaSpec>,
-			onEnterCallback?: OnTriggerEnterCallback,
-			debugColor?: Color3
-		) {
-			this.addTrigger(entity, layerMask, triggeredByMask, areas, function (e) {
-				triggers.removeTrigger(entity)
-				if (onEnterCallback)
-					onEnterCallback(e)
-			}, undefined, debugColor)
-		},
-		enableTrigger(entity: Entity, enabled: boolean) {
-			Trigger.getMutable(entity).active = enabled
-		},
-		isTriggerEnabled(entity: Entity) {
-			return Trigger.get(entity).active
-		},
-		getLayerMask(entity: Entity) {
-			return Trigger.get(entity).layerMask
-		},
-		setLayerMask(entity: Entity, mask: number) {
-			if (mask < 0 || mask > ALL_LAYERS || !Number.isInteger(mask))
-				throw new Error(`Bad layerMask: ${mask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
-			Trigger.getMutable(entity).layerMask = mask
-		},
-		getTriggeredByMask(entity: Entity) {
-			return Trigger.get(entity).triggeredByMask
-		},
-		setTriggeredByMask(entity: Entity, mask: number) {
-			if (mask < 0 || mask > ALL_LAYERS || !Number.isInteger(mask))
-				throw new Error(`Bad layerMask: ${mask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
-			Trigger.getMutable(entity).triggeredByMask = mask
-		},
-		getAreas(entity: Entity) {
-			return Trigger.get(entity).areas
-		},
-		setAreas(entity: Entity, areas: Array<TriggerAreaSpec>) {
-			Trigger.getMutable(entity).areas = triggerAreasFromSpec(areas)
-		},
-		setOnEnterCallback(entity: Entity, callback: OnTriggerEnterCallback) {
-			triggerEnterCbs.set(entity, callback)
-		},
-		setOnExitCallback(entity: Entity, callback: OnTriggerExitCallback) {
-			triggerExitCbs.set(entity, callback)
-		},
-		enableDebugDraw(enabled: boolean) {
-			debugDraw = enabled
-			if (!enabled) {
-				for (const shapes of debugEntities.values()) {
-					for (const shape of shapes)
-						targetEngine.removeEntity(shape)
-					shapes.length = 0
-				}
-			}
-		},
-		isDebugDrawEnabled() {
-			return debugDraw
-		}
-	}
-
-	triggersInterface.addTrigger(
-		targetEngine.PlayerEntity, PLAYER_LAYER_ID, NO_LAYERS,
+	addTrigger(
+		engine.PlayerEntity, PLAYER_LAYER_ID, NO_LAYERS,
 		//(1.92/2) accounts that the player position is now at the feet, not the head
 		[{
 			type: 'box',
 			scale: { x: 0.65, y: 1.92, z: 0.65 },
-			position: { x: 0, y: (1.92/2), z: 0 }
+			position: { x: 0, y: (1.92 / 2), z: 0 }
 		}],
 		undefined, undefined, Color3.Green()
 	)
-
-	return triggersInterface
 }
 
-export const triggers = createTriggers(engine)
+function triggerAreasFromSpec(areas?: Array<TriggerAreaSpec>) {
+	if (!areas)
+		areas = [{ type: 'box' }]
+
+	const triggerAreas: Array<TriggerArea> = []
+
+	for (const area of areas) {
+		if (area.type == 'box') {
+			triggerAreas.push({
+				$case: 'box',
+				value: {
+					position: area.position ? area.position : Vector3.Zero(),
+					scale: area.scale ? area.scale : Vector3.One()
+				}
+			})
+		} else {
+			triggerAreas.push({
+				$case: 'sphere',
+				value: {
+					position: area.position ? area.position : Vector3.Zero(),
+					radius: area.radius ? area.radius : 1
+				}
+			})
+		}
+	}
+	return triggerAreas
+}
+
+export function addTrigger(
+	entity: Entity,
+	layerMask: number = NO_LAYERS,
+	triggeredByMask: number = NO_LAYERS,
+	areas?: Array<TriggerAreaSpec>,
+	onEnterCallback?: OnTriggerEnterCallback,
+	onExitCallback?: OnTriggerExitCallback,
+	debugColor?: Color3
+) {
+	initTriggers()
+
+	if (layerMask < 0 || layerMask > ALL_LAYERS || !Number.isInteger(layerMask))
+		throw new Error(`Bad layerMask: ${layerMask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
+
+	if (triggeredByMask < 0 || triggeredByMask > ALL_LAYERS || !Number.isInteger(triggeredByMask))
+		throw new Error(`Bad triggeredByMask: ${triggeredByMask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
+
+	debugEntities.set(entity, [])
+	activeCollisions.set(entity, new Set())
+	triggerEnterCbs.set(entity, onEnterCallback)
+	triggerExitCbs.set(entity, onExitCallback)
+
+	Trigger.createOrReplace(entity, {
+		active: true,
+		layerMask: layerMask,
+		triggeredByMask: triggeredByMask,
+		areas: triggerAreasFromSpec(areas),
+		debugColor: debugColor ? debugColor : Color3.Red()
+	})
+}
+
+export function removeTrigger(entity: Entity) {
+	initTriggers()
+
+	const { engine } = getSDK()
+	const collisions = activeCollisions.get(entity)!
+	const callback = triggerExitCbs.get(entity)
+
+	for (const debugEntity of debugEntities.get(entity)!)
+		engine.removeEntity(debugEntity)
+
+	debugEntities.delete(entity)
+	activeCollisions.delete(entity)
+	triggerEnterCbs.delete(entity)
+	triggerExitCbs.delete(entity)
+	Trigger.deleteFrom(entity)
+
+	const collidingEntities = []
+	for (const [otherEntity, otherEntityCollisions] of activeCollisions) {
+		if (otherEntityCollisions.has(entity)) {
+			otherEntityCollisions.delete(entity)
+			collidingEntities.push(otherEntity)
+		}
+	}
+
+	if (callback) {
+		for (const collision of collisions)
+			callback(collision)
+	}
+
+	for (const otherEntity of collidingEntities) {
+		const callback = triggerExitCbs.get(otherEntity)
+		if (callback)
+			callback(entity)
+	}
+}
+
+export function oneTimeTrigger(
+	entity: Entity,
+	layerMask: number = NO_LAYERS,
+	triggeredByMask: number = NO_LAYERS,
+	areas?: Array<TriggerAreaSpec>,
+	onEnterCallback?: OnTriggerEnterCallback,
+	debugColor?: Color3
+) {
+	addTrigger(entity, layerMask, triggeredByMask, areas, function (e) {
+		removeTrigger(entity)
+		if (onEnterCallback)
+			onEnterCallback(e)
+	}, undefined, debugColor)
+}
+
+export function enableTrigger(entity: Entity, enabled: boolean) {
+	initTriggers()
+	Trigger.getMutable(entity).active = enabled
+}
+
+export function isTriggerEnabled(entity: Entity) {
+	initTriggers()
+	return Trigger.get(entity).active
+}
+
+export function getLayerMask(entity: Entity) {
+	initTriggers()
+	return Trigger.get(entity).layerMask
+}
+
+export function setLayerMask(entity: Entity, mask: number) {
+	initTriggers()
+	if (mask < 0 || mask > ALL_LAYERS || !Number.isInteger(mask))
+		throw new Error(`Bad layerMask: ${mask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
+	Trigger.getMutable(entity).layerMask = mask
+}
+
+export function getTriggeredByMask(entity: Entity) {
+	initTriggers()
+	return Trigger.get(entity).triggeredByMask
+}
+
+export function setTriggeredByMask(entity: Entity, mask: number) {
+	initTriggers()
+	if (mask < 0 || mask > ALL_LAYERS || !Number.isInteger(mask))
+		throw new Error(`Bad layerMask: ${mask}. Expected a non-negative integer no greater than ${ALL_LAYERS}`)
+	Trigger.getMutable(entity).triggeredByMask = mask
+}
+
+export function getAreas(entity: Entity) {
+	initTriggers()
+	return Trigger.get(entity).areas
+}
+
+export function setAreas(entity: Entity, areas: Array<TriggerAreaSpec>) {
+	initTriggers()
+	Trigger.getMutable(entity).areas = triggerAreasFromSpec(areas)
+}
+
+export function setOnEnterCallback(entity: Entity, callback: OnTriggerEnterCallback) {
+	initTriggers()
+	triggerEnterCbs.set(entity, callback)
+}
+
+export function setOnExitCallback(entity: Entity, callback: OnTriggerExitCallback) {
+	initTriggers()
+	triggerExitCbs.set(entity, callback)
+}
+
+export function enableDebugDraw(enabled: boolean) {
+	initTriggers()
+	const { engine } = getSDK()
+	
+	debugDraw = enabled
+	if (!enabled) {
+		for (const shapes of debugEntities.values()) {
+			for (const shape of shapes)
+				engine.removeEntity(shape)
+			shapes.length = 0
+		}
+	}
+}
+
+export function isDebugDrawEnabled() {
+	return debugDraw
+}
 
 
 const EMPTY_IMMUTABLE_SET: Set<Entity> = new Set()

@@ -1,22 +1,31 @@
-import { engine, Entity, IEngine, TransformType, Schemas, Transform } from '@dcl/sdk/ecs'
+import { Entity, IEngine, TransformType, Schemas } from '@dcl/sdk/ecs'
 import { priority } from './priority'
+import { getSDK } from './sdk'
 
-export type Timers = ReturnType<typeof createTimers>
+export type Timers = ReturnType<typeof initTimers>
 
 export type Callback = () => void
 
 export type TimerId = number
 
-function createTimers(targetEngine: IEngine) {
-  type TimerData = {
-    accumulatedTime: number,
-    interval: number,
-    recurrent: boolean,
-    callback: Callback
-  }
+type TimerData = {
+  accumulatedTime: number,
+  interval: number,
+  recurrent: boolean,
+  callback: Callback
+}
 
-  const timers: Map<TimerId, TimerData> = new Map()
-  let timerIdCounter = 0
+const timers: Map<TimerId, TimerData> = new Map()
+
+let timerIdCounter = 0
+let timersSystemStarted = false
+
+function initTimers() {
+
+  if (timersSystemStarted) return
+  timersSystemStarted = true
+
+  const { engine } = getSDK()
 
   function system(dt: number) {
     let deadTimers = []
@@ -38,31 +47,32 @@ function createTimers(targetEngine: IEngine) {
 
     for (let timerId of deadTimers)
       timers.delete(timerId)
-    
+
     for (let callback of callbacks)
       callback()
   }
 
-  targetEngine.addSystem(system, priority.TimerSystemPriority)
+  engine.addSystem(system, priority.TimerSystemPriority)
 
-  return {
-    setTimeout(callback: Callback, milliseconds: number): TimerId {
-      let timerId = timerIdCounter++
-      timers.set(timerId, {callback: callback, interval: milliseconds, recurrent: false, accumulatedTime: 0})
-      return timerId
-    },
-    clearTimeout(timer: TimerId) {
-      timers.delete(timer)
-    },
-    setInterval(callback: Callback, milliseconds: number): TimerId {
-      let timerId = timerIdCounter++
-      timers.set(timerId, {callback: callback, interval: milliseconds, recurrent: true, accumulatedTime: 0})
-      return timerId
-    },
-    clearInterval(timer: TimerId) {
-      timers.delete(timer)
-    }
-  }
+}
+export function setTimeout(callback: Callback, milliseconds: number): TimerId {
+  initTimers()
+  let timerId = timerIdCounter++
+  timers.set(timerId, { callback: callback, interval: milliseconds, recurrent: false, accumulatedTime: 0 })
+  return timerId
 }
 
-export const timers = createTimers(engine)
+export function clearTimeout(timer: TimerId) {
+  timers.delete(timer)
+}
+
+export function setInterval(callback: Callback, milliseconds: number): TimerId {
+  initTimers()
+  let timerId = timerIdCounter++
+  timers.set(timerId, { callback: callback, interval: milliseconds, recurrent: true, accumulatedTime: 0 })
+  return timerId
+}
+
+export function clearInterval(timer: TimerId) {
+  timers.delete(timer)
+}
