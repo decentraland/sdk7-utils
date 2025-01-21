@@ -65,7 +65,7 @@ let triggersSystemStarted = false
 export function defineTriggerComponent() {
 	const { engine } = getSDK()
 
-		Trigger = engine.defineComponent('dcl.utils.Trigger', {
+		Trigger = engine.defineComponent('dcl.utils.Trigger.version.2', {
 			active: Schemas.Boolean,
 			layerMask: Schemas.Int,
 			triggeredByMask: Schemas.Int,
