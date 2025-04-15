@@ -46,6 +46,7 @@ This library includes a number of helpful pre-built tools that offer simple solu
 
 To use any of the helpers provided by the utils library you must install it in your Decentrland project.
 
+<!--
 ### Via the Decentraland Editor
 
 Make sure you've [installed the Decentraland editor](https://docs.decentraland.org/creator/development-guide/sdk7/installation-guide/#the-decentraland-editor).
@@ -67,7 +68,7 @@ import * as utils from '@dcl-sdk/utils'
 ```
 
 6. In your TypeScript file, write `utils.` and let the suggestions of your IDE show the available helpers.
-
+-->
 ### Via the CLI
 
 1. Install it as an `npm` package. Run this command in your scene's project folder:
