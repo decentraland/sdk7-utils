@@ -121,15 +121,18 @@ function createTriggers(targetEngine: IEngine) {
 		const offset = Vector3.rotate(area.value.position, rootWorldRot)
 		const position = Vector3.add(rootWorldPos, offset)
 		let scale: Vector3
+		let rotation: Quaternion
 		if (area.$case == 'box') {
 			scale = area.value.scale
+			rotation = rootWorldRot
 		} else {
 			scale = { x: area.value.radius, y: area.value.radius, z: area.value.radius }
+			rotation = Quaternion.Identity()
 		}
 		Transform.createOrReplace(child, {
 			position: position,
 			scale: scale,
-			rotation: Quaternion.Identity()
+			rotation: rotation
 		})
 	}
 
