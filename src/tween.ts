@@ -57,25 +57,23 @@ function createTweens(targetEngine: IEngine) {
     tweenMap.delete(entity);
   }
 
-  function makeStart<
-    Mode extends keyof TweenHelper,
-    Type extends Parameters<TweenHelper[Mode]>[0]
-  >(mode: Mode) {
+  function makeStart<Mode extends keyof TweenHelper>(mode: Mode) {
     return function (
       entity: Entity,
-      start: Type["start"],
-      end: Type["end"],
+      start: any,
+      end: any,
       duration: number,
       interpolationType: InterpolationType = InterpolationType.LINEAR,
       onFinish?: OnFinishCallback
     ) {
       const currentTime = duration === 0 ? 1 : 0;
       tweenMap.set(entity, { normalizedTime: currentTime, callback: onFinish });
+      const modeValue = (Tween.Mode as any)[mode]({ start: start as any, end: end as any })
       Tween.createOrReplace(entity, {
         duration: duration * 1000,
         easingFunction: getEasingFunctionFromInterpolation(interpolationType),
         currentTime,
-        mode: Tween.Mode[mode]({ start: start as any, end: end as any }),
+        mode: modeValue,
       });
     };
   }
