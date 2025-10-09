@@ -20,7 +20,7 @@
     "removeComments": true,
     "inlineSources": true,
     "useDefineForClassFields": false,
-    "preserveConstEnums": true,
+    "preserveConstEnums": false,
     "allowJs": true,
     "jsx": "react",
     "jsxFactory": "ReactEcs.createElement",
