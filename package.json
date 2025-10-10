@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/decentraland/sdk7-utils#readme",
   "devDependencies": {
-    "@dcl/sdk": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/shape-up/control-audio-scene/dcl-sdk-7.4.8-8267289014.commit-3356b5d.tgz",
+    "@dcl/sdk": "^7.10.6",
     "typescript": "^5.0.2"
   },
   "files": [
