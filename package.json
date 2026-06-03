@@ -26,6 +26,9 @@
   "homepage": "https://github.com/decentraland/sdk7-utils#readme",
   "devDependencies": {
     "@dcl/sdk": "^7.10.6",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.9",
     "typescript": "^5.0.2"
   },
   "files": [
